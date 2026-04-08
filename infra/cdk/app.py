@@ -9,6 +9,8 @@ from stacks.observability_stack import ObservabilityStack
 app = App()
 environment = Environment(account="111111111111", region="us-east-1")
 
+# Keep the CDK story split by concern, but wire real cross-stack references between
+# the data, observability, and AI layers.
 data_platform = DataPlatformStack(
     app,
     "CasewareDataPlatformStack",

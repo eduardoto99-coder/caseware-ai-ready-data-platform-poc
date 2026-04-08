@@ -45,6 +45,8 @@ def chunk_document(document: DocumentRecord) -> list[DocumentChunk]:
         kind = "table_fragment" if document.contains_table_like_text and _is_table_like(paragraph) else "narrative"
         text = paragraph
         if kind == "narrative" and len(paragraph) > 320:
+            # Narrative chunks use overlapping sentence windows so downstream retrieval keeps
+            # enough local context without breaking table-like fragments apart.
             sentences = re.split(r"(?<=[.!?])\s+", paragraph)
             windows: list[str] = []
             buffer: list[str] = []
@@ -66,6 +68,7 @@ def chunk_document(document: DocumentRecord) -> list[DocumentChunk]:
             fragments = [text]
 
         for fragment in fragments:
+            # Carry the prior tail sentence forward to avoid losing references at chunk edges.
             chunk_text = fragment if not carryover else f"{carryover}\n{fragment}"
             chunk = DocumentChunk(
                 chunk_id=f"{document.document_id}::chunk::{len(chunks)}",

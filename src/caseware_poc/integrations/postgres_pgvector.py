@@ -66,6 +66,8 @@ class PgVectorDocumentStore:
         top_k: int,
         doc_type: str | None = None,
     ) -> list[dict[str, object]]:
+        # Tenant and retention predicates stay in SQL so similarity ranking never runs across
+        # another customer's documents.
         predicates = ["tenant_id = %(tenant_id)s", "retention_state = 'active'"]
         if doc_type:
             predicates.append("doc_type = %(doc_type)s")

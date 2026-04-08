@@ -57,6 +57,8 @@ class ReferenceLangGraphAgent:
 
         graph.set_entry_point("validate_tenant")
         graph.add_edge("validate_tenant", "route")
+        # Mixed questions intentionally go through SQL first so exact values are anchored
+        # before document context is added in later nodes.
         graph.add_conditional_edges(
             "route",
             self.route_selector,
@@ -117,6 +119,8 @@ class ReferenceLangGraphAgent:
             top_k=4,
         )
         hits = response.get("hits", {}).get("hits", [])
+        # The index already applied tenant and retention filters; this step only reshapes
+        # the ranked hits into the chunk payload used by synthesis.
         chunks = [
             {
                 "id": hit["_id"],
@@ -135,6 +139,7 @@ class ReferenceLangGraphAgent:
             "rag": "tenant_safe_policy_rag",
             "mixed_guardrail": "precision_guardrail",
         }[state["route"]]
+        # Prompt assets stay in repo files so the guardrail contract is reviewable and versioned.
         system_prompt = "\n\n".join(
             [
                 self.assets.load_system_context(),
@@ -151,6 +156,8 @@ class ReferenceLangGraphAgent:
         return state
 
     def guardrails(self, state: AgentState) -> AgentState:
+        # Final checks validate that the chosen route respected the platform contract before
+        # traces are emitted to Langfuse.
         enforce_exact_finance_from_sql(
             question_route=state["route"],
             answer_payload={

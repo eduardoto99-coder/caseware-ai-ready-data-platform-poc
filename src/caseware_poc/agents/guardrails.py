@@ -20,6 +20,7 @@ def enforce_exact_finance_from_sql(*, question_route: str, answer_payload: dict[
 
 
 def enforce_context_budget(chunks: list[dict[str, Any]], max_chars: int = 8000) -> list[dict[str, Any]]:
+    # Keep the highest-ranked chunks in order until the prompt budget is exhausted.
     budget = 0
     kept: list[dict[str, Any]] = []
     for chunk in chunks:

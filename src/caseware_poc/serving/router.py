@@ -13,6 +13,8 @@ def route_question(question: str) -> RouteDecision:
     rag_hits = [term for term in routing["rag_terms"] if term in normalized]
     precision_doc_hits = [term for term in routing["precision_doc_terms"] if term in normalized]
 
+    # When exact-value intent and document cues coexist, route to the guarded mixed path
+    # so SQL remains the source of truth and documents stay contextual.
     if sql_hits and precision_doc_hits:
         return RouteDecision(
             route="mixed_guardrail",

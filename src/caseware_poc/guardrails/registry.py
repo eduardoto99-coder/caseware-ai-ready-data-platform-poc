@@ -50,6 +50,8 @@ class GuardrailRegistry:
 
     def context_for(self, *, route: str, skill_id: str) -> GuardrailContext:
         skill = self._skills[skill_id]
+        # Return the concrete skill and rule files that governed the answer so callers can
+        # expose policy provenance during reviews or interviews.
         matching_rules = [
             rule
             for rule in self._rules.values()

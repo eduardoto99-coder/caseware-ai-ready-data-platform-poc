@@ -18,6 +18,8 @@ def build_spark_session() -> SparkSession:
 def main() -> None:
     spark = build_spark_session()
 
+    # The merge separates duplicate-event cleanup from latest-entity ranking so retried CDC
+    # messages do not overwrite fresher business state.
     spark.sql(
         """
         MERGE INTO caseware.caseware_audit_lakehouse.silver_invoice_snapshot AS target

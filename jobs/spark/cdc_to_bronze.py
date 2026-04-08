@@ -44,6 +44,8 @@ def main() -> None:
         .load()
     )
 
+    # Bronze keeps Kafka envelope metadata next to the parsed event so replay, lineage,
+    # and CDC troubleshooting do not depend on downstream tables.
     parsed = raw_stream.select(
         col("topic"),
         col("partition"),

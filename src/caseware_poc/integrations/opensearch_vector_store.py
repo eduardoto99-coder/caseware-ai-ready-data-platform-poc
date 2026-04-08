@@ -58,6 +58,8 @@ class OpenSearchDocumentIndex:
         top_k: int,
         doc_type: str | None = None,
     ) -> dict[str, Any]:
+        # Tenant and retention constraints live in bool.filter so cross-tenant data is never
+        # eligible for either lexical or vector scoring.
         filters: list[dict[str, object]] = [
             {"term": {"tenant_id": tenant_id}},
             {"term": {"retention_state": "active"}},

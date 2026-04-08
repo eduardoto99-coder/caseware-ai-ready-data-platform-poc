@@ -18,6 +18,8 @@ def build_spark_session() -> SparkSession:
 def main() -> None:
     spark = build_spark_session()
 
+    # Gold is built only from curated silver snapshots and emits a lineage reference so
+    # agent-facing answers can still be traced back to the source events.
     spark.sql(
         """
         CREATE OR REPLACE TABLE caseware.caseware_audit_lakehouse.gold_invoice_summary
