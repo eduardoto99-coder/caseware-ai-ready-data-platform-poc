@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "caseware-ai-ready-platform-poc"
+version = "0.1.0"
+description = "Multi-tenant AI-ready accounting data platform reference implementation for a Caseware-style technical challenge."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+authors = [
+  { name = "Eduardo Blandon" }
+]
+dependencies = [
+  "duckdb>=1.5.1",
+  "fastapi>=0.135.3",
+  "numpy>=2.4.4",
+  "pydantic>=2.12.5",
+  "uvicorn>=0.44.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28.1",
+  "pytest>=9.0.3",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["caseware_poc*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
