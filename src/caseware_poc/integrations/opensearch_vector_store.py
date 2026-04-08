@@ -58,7 +58,11 @@ class OpenSearchDocumentIndex:
                         "embedding": {
                             "type": "knn_vector",
                             "dimension": 1536,
-                            "method": {"name": "hnsw", "engine": "faiss", "space_type": "cosinesimil"},
+                            "method": {
+                                "name": "hnsw",
+                                "engine": "faiss",
+                                "space_type": "cosinesimil",
+                            },
                         },
                     }
                 },

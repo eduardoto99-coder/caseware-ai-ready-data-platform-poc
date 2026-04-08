@@ -1,0 +1,115 @@
+## Golden evaluation set for routing, retrieval, and guardrail accuracy.
+## Each entry carries the expected route and, where applicable, the expected
+## answer source so eval scripts can compute precision without live backends.
+
+questions:
+  # --- SQL route (exact financial / operational facts) ---
+  - id: sql_001
+    text: "What is the total overdue invoice amount for tenant_alpha this month?"
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    answer_source: gold_invoice_summary
+    notes: Straightforward aggregation over the gold product.
+
+  - id: sql_002
+    text: "How many open invoices does tenant_beta have?"
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    answer_source: gold_invoice_summary
+
+  - id: sql_003
+    text: "List all control exceptions for tenant_alpha."
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    answer_source: v_gold_control_exceptions
+
+  - id: sql_004
+    text: "What is the sum of invoices in the 31_60 aging bucket?"
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    answer_source: gold_invoice_summary
+
+  - id: sql_005
+    text: "Show the engagement status for engagement E-2026-001."
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    answer_source: silver_engagement_snapshot
+
+  - id: sql_006
+    text: "What is the outstanding balance for customer C-001?"
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    answer_source: gold_invoice_summary
+
+  # --- RAG route (narrative / policy / workpaper context) ---
+  - id: rag_001
+    text: "What does the deferred revenue policy say about onboarding services?"
+    expected_route: rag
+    expected_skill: tenant_safe_policy_rag
+    doc_types: [policy]
+
+  - id: rag_002
+    text: "Explain the revenue recognition guidance for multi-year engagements."
+    expected_route: rag
+    expected_skill: tenant_safe_policy_rag
+    doc_types: [policy]
+
+  - id: rag_003
+    text: "Summarize the engagement notes for the most recent audit."
+    expected_route: rag
+    expected_skill: tenant_safe_policy_rag
+    doc_types: [engagement_note]
+
+  - id: rag_004
+    text: "Why was the materiality threshold set at 5% for this engagement?"
+    expected_route: rag
+    expected_skill: tenant_safe_policy_rag
+    doc_types: [engagement_note, workpaper]
+
+  - id: rag_005
+    text: "What guidance exists for classifying lease obligations?"
+    expected_route: rag
+    expected_skill: tenant_safe_policy_rag
+    doc_types: [policy]
+
+  - id: rag_006
+    text: "What does the issue summary say about payroll discrepancies?"
+    expected_route: rag
+    expected_skill: tenant_safe_policy_rag
+    doc_types: [issue_summary]
+
+  # --- Mixed guardrail route (exact values + document context) ---
+  - id: mixed_001
+    text: "What does the OCR workpaper say and what exact amount is overdue?"
+    expected_route: mixed_guardrail
+    expected_skill: precision_guardrail
+    notes: SQL owns exact amount; workpaper provides context only.
+
+  - id: mixed_002
+    text: "How much is the total invoice balance, and what does the policy say about late fees?"
+    expected_route: mixed_guardrail
+    expected_skill: precision_guardrail
+
+  - id: mixed_003
+    text: "Show the overdue amount from the table in the OCR document."
+    expected_route: mixed_guardrail
+    expected_skill: precision_guardrail
+    notes: '"table" and "document" trigger precision_doc; "overdue" and "amount" trigger sql.'
+
+  - id: mixed_004
+    text: "What is the control exception count and what does the workpaper say about it?"
+    expected_route: mixed_guardrail
+    expected_skill: precision_guardrail
+
+  # --- Edge cases ---
+  - id: edge_001
+    text: "Hello, how are you?"
+    expected_route: sql
+    expected_skill: exact_accounting_sql
+    notes: No matching terms; defaults to sql route.
+
+  - id: edge_002
+    text: "What is the invoice policy?"
+    expected_route: mixed_guardrail
+    expected_skill: precision_guardrail
+    notes: "'invoice' is SQL, 'policy' is both RAG and precision_doc."

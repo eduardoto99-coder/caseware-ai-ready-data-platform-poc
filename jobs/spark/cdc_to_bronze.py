@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp, from_json
+from pyspark.sql.functions import col, current_timestamp, from_json, to_timestamp
 from pyspark.sql.types import StringType, StructField, StructType
 
 
@@ -18,6 +18,8 @@ CDC_SCHEMA = StructType(
         StructField("payload_json", StringType(), False),
         StructField("source_system", StringType(), False),
         StructField("event_version", StringType(), True),
+        StructField("batch_id", StringType(), True),
+        StructField("source_file", StringType(), True),
     ]
 )
 
@@ -57,7 +59,19 @@ def main() -> None:
         "partition",
         "offset",
         "bronze_ingested_at",
-        "event.*",
+        col("event.event_id").alias("event_id"),
+        col("event.entity_name").alias("entity_name"),
+        col("event.op").alias("op"),
+        col("event.tenant_id").alias("tenant_id"),
+        col("event.entity_id").alias("entity_id"),
+        to_timestamp(col("event.updated_at")).alias("updated_at"),
+        to_timestamp(col("event.emitted_at")).alias("emitted_at"),
+        col("event.source_sequence").cast("long").alias("source_sequence"),
+        col("event.payload_json").alias("payload_json"),
+        col("event.source_system").alias("source_system"),
+        col("event.batch_id").alias("batch_id"),
+        col("event.source_file").alias("source_file"),
+        col("event.event_version").alias("event_version"),
     )
 
     (

@@ -27,5 +27,6 @@ Preferred sources:
 Working rules:
 
 - If SQL returns no rows, say so directly.
+- Bedrock may format the response, but SQL rows remain the only source of exact values.
 - Do not fill gaps with narrative context.
 - If the question mixes exact-value terms with document language, hand off to `precision_guardrail`.

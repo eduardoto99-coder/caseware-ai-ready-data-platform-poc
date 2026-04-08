@@ -7,7 +7,9 @@ from typing import Any
 import yaml
 
 
-_FRONTMATTER_PATTERN = re.compile(r"\A---\n(?P<frontmatter>.*?)\n---\n?(?P<body>.*)\Z", re.DOTALL)
+_FRONTMATTER_PATTERN = re.compile(
+    r"\A---\n(?P<frontmatter>.*?)\n---\n?(?P<body>.*)\Z", re.DOTALL
+)
 
 
 def load_markdown_asset(path: Path) -> tuple[dict[str, Any], str]:

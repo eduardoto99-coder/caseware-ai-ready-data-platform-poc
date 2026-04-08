@@ -5,9 +5,9 @@ This repo is the solution I would walk through for a multi-tenant accounting and
 ## What The POC Covers
 
 - Structured data path: PostgreSQL OLTP -> Debezium / Kafka Connect -> Kafka -> Spark -> Iceberg on S3 with Glue Catalog / Lake Formation -> Trino and Athena for governed querying.
-- Unstructured data path: MongoDB documents -> chunking for narrative text and OCR/table-like text -> OpenSearch Serverless or Aurora PostgreSQL with pgvector -> Bedrock for grounded synthesis.
+- Unstructured data path: MongoDB documents or Textract OCR output -> chunking for narrative text and OCR/table-like text -> OpenSearch Serverless or Aurora PostgreSQL with pgvector -> Bedrock for grounded synthesis.
 - Agent path: route exact questions to SQL, narrative questions to retrieval, and mixed questions to a guardrail path where SQL owns the exact answer and documents only provide context.
-- Platform concerns: tenant isolation, lineage, retention, citation-first answers, observability, and CDK / EKS infrastructure artifacts.
+- Platform concerns: tenant isolation, lineage, retention, citation-first answers, observability, measurable evals, and CDK / EKS infrastructure artifacts.
 
 ## How It Is Organized
 
@@ -29,6 +29,8 @@ Small Kafka Connect client for registering or checking connectors.
 CDC microbatch consumer shape.
 - `src/caseware_poc/integrations/mongo_document_source.py`
 MongoDB document-source integration.
+- `src/caseware_poc/integrations/textract_client.py`
+Textract shape for layout-aware OCR, table extraction, and conversion into `DocumentRecord` objects for chunking.
 
 ### Lakehouse and serving
 
@@ -89,6 +91,12 @@ CloudWatch metric emission shape.
 Langfuse tracing wrapper.
 - `src/caseware_poc/observability/newrelic_monitoring.py`
 New Relic integration shape.
+- `evals/`
+Offline eval harness for routing, chunking, retrieval, and guardrail contract compliance.
+- `docs/adr/`
+Short architecture decision records for routing, retrieval backend, SQL-first mixed answers, and chunking strategy.
+- `docs/slos.md`
+Service-level objectives for freshness, latency, guardrail compliance, and tenant isolation.
 - `infra/cdk/`
 CDK stacks for the data platform, AI platform, and observability layers.
 - `infra/k8s/`
@@ -98,7 +106,7 @@ Kubernetes manifests and Helm values for Trino, Langfuse, New Relic, OpenSearch 
 
 The repo uses the tools that matter most for the challenge: PostgreSQL, MongoDB, Debezium, Kafka, Spark, S3, Glue Catalog, Lake Formation, Iceberg, Trino, Athena, OpenSearch Serverless, Aurora PostgreSQL, pgvector, Bedrock, LangGraph, Langfuse, CloudWatch, New Relic, EKS, CDK, and Docker.
 
-I did not try to squeeze in every adjacent AWS service. DocumentDB, DynamoDB, Redis, SNS, SQS, LaunchDarkly, AgentCore, Textract, Step Functions, Lambda, OpenTelemetry, and S3 Vector Storage are either outside the core architecture boundary or would broaden the repo without making the challenge answer stronger.
+I did not try to squeeze in every adjacent AWS service. DocumentDB, DynamoDB, Redis, SNS, SQS, LaunchDarkly, AgentCore, Step Functions, Lambda, OpenTelemetry, and S3 Vector Storage are either outside the core architecture boundary or would broaden the repo without making the challenge answer stronger.
 
 ## AI Delivery Files
 

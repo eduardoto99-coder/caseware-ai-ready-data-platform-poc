@@ -4,11 +4,13 @@ tooling:
     exact_accounting_sql:
       allowed_tools:
         - trino_client
+        - bedrock_runtime
       forbidden_tools:
         - opensearch_vector_store_for_exact_facts
         - postgres_pgvector_for_exact_facts
       execution_order:
         - trino_client
+        - bedrock_runtime
     tenant_safe_policy_rag:
       allowed_tools:
         - opensearch_vector_store

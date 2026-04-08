@@ -44,7 +44,9 @@ class GuardrailRegistry:
         self.skills_dir = self.root_dir / "guardrails" / "skills"
         self.rules_dir = self.root_dir / "guardrails" / "rules"
         self.contracts_dir = self.root_dir / "guardrails" / "contracts"
-        self.context_file = self.root_dir / "guardrails" / "context" / "system_context.txt"
+        self.context_file = (
+            self.root_dir / "guardrails" / "context" / "system_context.txt"
+        )
         self._skills = self._load_skills()
         self._rules = self._load_rules()
         self.system_context = self.context_file.read_text(encoding="utf-8").strip()
@@ -92,7 +94,6 @@ class GuardrailRegistry:
         routing_file = self.rules_dir / "routing.md"
         retrieval_file = self.rules_dir / "retrieval.md"
         response_file = self.rules_dir / "response.md"
-        routing = load_markdown_asset(routing_file)[0]["routing"]
         retrieval = load_markdown_asset(retrieval_file)[0]["retrieval"]
         response = load_markdown_asset(response_file)[0]["response"]
         return {
@@ -102,7 +103,11 @@ class GuardrailRegistry:
                 description="Use SQL for governed exact facts and RAG for narrative context.",
                 applies_to_routes=["sql", "rag", "mixed_guardrail"],
                 applies_to_skills=[],
-                enforcement_points=["route_selection", "skill_binding", "structured_truth_priority"],
+                enforcement_points=[
+                    "route_selection",
+                    "skill_binding",
+                    "structured_truth_priority",
+                ],
                 source_file=str(routing_file.relative_to(self.root_dir)),
             ),
             "retrieval_grounding": GuardrailRule(
@@ -111,7 +116,11 @@ class GuardrailRegistry:
                 description=f"Require filters {retrieval['required_metadata_filters']} and citations for document answers.",
                 applies_to_routes=["rag", "mixed_guardrail"],
                 applies_to_skills=["tenant_safe_policy_rag", "precision_guardrail"],
-                enforcement_points=["tenant_filtering", "retention_filtering", "citation_requirement"],
+                enforcement_points=[
+                    "tenant_filtering",
+                    "retention_filtering",
+                    "citation_requirement",
+                ],
                 source_file=str(retrieval_file.relative_to(self.root_dir)),
             ),
             "response_guardrail": GuardrailRule(
@@ -120,7 +129,11 @@ class GuardrailRegistry:
                 description=response["guardrail_warning_message"],
                 applies_to_routes=["rag", "mixed_guardrail"],
                 applies_to_skills=["tenant_safe_policy_rag", "precision_guardrail"],
-                enforcement_points=["warning_injection", "exactness_protection", "insufficient_grounding_handling"],
+                enforcement_points=[
+                    "warning_injection",
+                    "exactness_protection",
+                    "insufficient_grounding_handling",
+                ],
                 source_file=str(response_file.relative_to(self.root_dir)),
             ),
         }
@@ -154,7 +167,9 @@ class GuardrailRegistry:
         contract_file = self.contracts_dir / "answer_contracts.yaml"
         if not contract_file.exists():
             return {}
-        return yaml.safe_load(contract_file.read_text(encoding="utf-8"))["answer_contracts"]
+        return yaml.safe_load(contract_file.read_text(encoding="utf-8"))[
+            "answer_contracts"
+        ]
 
     def skills_payload(self) -> dict[str, Any]:
         return {

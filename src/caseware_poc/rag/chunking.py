@@ -42,7 +42,11 @@ def chunk_document(document: DocumentRecord) -> list[DocumentChunk]:
     chunks: list[DocumentChunk] = []
     carryover = ""
     for paragraph in paragraphs:
-        kind = "table_fragment" if document.contains_table_like_text and _is_table_like(paragraph) else "narrative"
+        kind = (
+            "table_fragment"
+            if document.contains_table_like_text and _is_table_like(paragraph)
+            else "narrative"
+        )
         text = paragraph
         if kind == "narrative" and len(paragraph) > 320:
             # Narrative chunks use overlapping sentence windows so downstream retrieval keeps

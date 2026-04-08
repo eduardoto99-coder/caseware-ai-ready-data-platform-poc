@@ -24,6 +24,7 @@ class BedrockAnswerSynthesizer:
         *,
         system_prompt: str,
         user_question: str,
+        structured_context: list[dict[str, Any]],
         retrieved_context: list[dict[str, Any]],
         guardrail_rules: dict[str, Any],
     ) -> dict[str, Any]:
@@ -35,6 +36,7 @@ class BedrockAnswerSynthesizer:
                         "text": (
                             f"Question:\n{user_question}\n\n"
                             f"Guardrail rules:\n{guardrail_rules}\n\n"
+                            f"Structured SQL context:\n{structured_context}\n\n"
                             f"Retrieved context:\n{retrieved_context}"
                         )
                     }

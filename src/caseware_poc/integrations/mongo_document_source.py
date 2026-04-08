@@ -50,4 +50,3 @@ class MongoDocumentSource:
             "document_count": self.collection.count_documents({}),
             "checked_at": datetime.now(timezone.utc).isoformat(),
         }
-

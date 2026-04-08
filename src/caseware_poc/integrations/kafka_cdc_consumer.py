@@ -32,7 +32,9 @@ class KafkaCdcMicrobatchConsumer:
             }
         )
 
-    def poll_batch(self, max_messages: int = 5000, timeout_seconds: float = 5.0) -> list[dict[str, Any]]:
+    def poll_batch(
+        self, max_messages: int = 5000, timeout_seconds: float = 5.0
+    ) -> list[dict[str, Any]]:
         self.consumer.subscribe([self.config.topic])
         batch: list[dict[str, Any]] = []
         while len(batch) < max_messages:

@@ -17,7 +17,9 @@ class DebeziumConnectorClient:
     def __init__(self, config: KafkaConnectConfig) -> None:
         self.config = config
 
-    def put_connector_config(self, connector_name: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def put_connector_config(
+        self, connector_name: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         body = json.dumps(payload).encode("utf-8")
         req = request.Request(
             f"{self.config.base_url}/connectors/{connector_name}/config",

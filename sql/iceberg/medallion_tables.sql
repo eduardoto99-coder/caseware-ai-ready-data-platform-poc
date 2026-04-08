@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS iceberg.caseware_audit_lakehouse.bronze_structured_ev
     source_sequence BIGINT,
     payload_json VARCHAR,
     source_system VARCHAR,
+    event_version VARCHAR,
     batch_id VARCHAR,
     source_file VARCHAR
 )
@@ -33,13 +34,36 @@ CREATE TABLE IF NOT EXISTS iceberg.caseware_audit_lakehouse.silver_invoice_snaps
     invoice_date DATE,
     updated_at TIMESTAMP(6) WITH TIME ZONE,
     source_event_id VARCHAR,
-    source_batch_id VARCHAR
+    source_batch_id VARCHAR,
+    is_deleted BOOLEAN
 )
 WITH (
     format = 'PARQUET',
     location = 's3://caseware-ai-platform-dev-silver/invoice_snapshot/',
     format_version = 2,
     partitioning = ARRAY['tenant_id', 'month(invoice_date)']
+);
+
+CREATE TABLE IF NOT EXISTS iceberg.caseware_audit_lakehouse.silver_invoice_quarantine (
+    tenant_id VARCHAR,
+    invoice_id VARCHAR,
+    event_id VARCHAR,
+    batch_id VARCHAR,
+    payload_json VARCHAR,
+    raw_invoice_amount VARCHAR,
+    raw_due_date VARCHAR,
+    raw_invoice_date VARCHAR,
+    quality_errors ARRAY(VARCHAR),
+    updated_at TIMESTAMP(6) WITH TIME ZONE,
+    emitted_at TIMESTAMP(6) WITH TIME ZONE,
+    source_sequence BIGINT,
+    quarantined_at TIMESTAMP(6) WITH TIME ZONE
+)
+WITH (
+    format = 'PARQUET',
+    location = 's3://caseware-ai-platform-dev-silver/invoice_quarantine/',
+    format_version = 2,
+    partitioning = ARRAY['tenant_id']
 );
 
 CREATE TABLE IF NOT EXISTS iceberg.caseware_audit_lakehouse.gold_invoice_summary (

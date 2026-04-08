@@ -23,9 +23,15 @@ class PromptAssetLoader:
     def load_rules(self, rules_name: str) -> dict:
         if rules_name == "llm_guardrails":
             return {
-                "routing": load_markdown_asset(self.rules_dir / "routing.md")[0]["routing"],
-                "retrieval": load_markdown_asset(self.rules_dir / "retrieval.md")[0]["retrieval"],
-                "response": load_markdown_asset(self.rules_dir / "response.md")[0]["response"],
+                "routing": load_markdown_asset(self.rules_dir / "routing.md")[0][
+                    "routing"
+                ],
+                "retrieval": load_markdown_asset(self.rules_dir / "retrieval.md")[0][
+                    "retrieval"
+                ],
+                "response": load_markdown_asset(self.rules_dir / "response.md")[0][
+                    "response"
+                ],
             }
         path = self.rules_dir / f"{rules_name}.md"
         payload, _ = load_markdown_asset(path)
