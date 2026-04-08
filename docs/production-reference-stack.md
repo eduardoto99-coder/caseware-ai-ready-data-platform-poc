@@ -18,6 +18,23 @@ Some files are demo-friendly stand-ins and some are cloud-shaped artifacts, but 
 
 ## Production Reference Directories
 
+### `docker/`
+
+Optional demo stack for hands-on source-system and CDC discussions.
+
+- `compose.yaml`
+  PostgreSQL, MongoDB, Kafka, Debezium/Kafka Connect, and OpenSearch containers
+- `postgres/init/001_caseware_oltp.sql`
+  structured OLTP schema, sample rows, and logical replication publication
+- `mongo/init/*.js`
+  document source seed data and replica set bootstrap
+- `connectors/postgres-cdc.json`
+  Debezium Postgres connector
+- `connectors/mongodb-documents.json`
+  Debezium MongoDB connector
+
+This directory exists to strengthen the interview signal around hands-on source systems and CDC without turning the repository into a full deployment exercise.
+
 ### `infra/cdk/`
 
 AWS CDK reference app and stacks.
@@ -80,8 +97,10 @@ Connectors that model the production runtime.
 
 - `trino_client.py`
 - `postgres_pgvector.py`
+- `mongo_document_source.py`
 - `opensearch_vector_store.py`
 - `kafka_cdc_consumer.py`
+- `debezium_connect.py`
 - `glue_catalog.py`
 - `bedrock_runtime.py`
 
@@ -129,6 +148,7 @@ Directly represented in production-shaped files:
 
 - Spark
 - Kafka / MSK
+- Debezium / Kafka Connect
 - Trino
 - S3
 - Glue Catalog
@@ -136,6 +156,7 @@ Directly represented in production-shaped files:
 - Iceberg
 - EMR Serverless
 - Aurora PostgreSQL
+- MongoDB
 - pgvector
 - OpenSearch Serverless
 - EKS
@@ -144,6 +165,7 @@ Directly represented in production-shaped files:
 - Langfuse
 - CloudWatch
 - New Relic
+- Docker
 - AWS CDK
 
 Still primarily conceptual or lightly represented:
@@ -154,7 +176,7 @@ Still primarily conceptual or lightly represented:
 - S3 Vector Storage
 - LaunchDarkly
 
-Lake Formation and AWS Knowledge Bases are represented directly in the CDK layer.
+Lake Formation and AWS Knowledge Bases are represented directly in the CDK layer. DocumentDB is intentionally not used because it does not strengthen the challenge story more than PostgreSQL plus MongoDB.
 
 ## Best Way To Present This
 

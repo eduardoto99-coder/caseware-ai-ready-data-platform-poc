@@ -100,8 +100,8 @@ Status meanings:
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| MongoDB | Not used intentionally | The challenge did not require a document application database; document ingestion is file-backed in this POC. |
-| Amazon DocumentDB | Not used intentionally | Same reason as MongoDB; not required to demonstrate the core platform slice. |
+| MongoDB | Used directly (challenge artifact) | `docker/mongo/init/*`, `docker/connectors/mongodb-documents.json`, and `src/caseware_poc/integrations/mongo_document_source.py` model MongoDB as a document-heavy source system. |
+| Amazon DocumentDB | Not used intentionally | MongoDB plus CDK-backed platform artifacts were enough to demonstrate document-source depth without adding a weaker interview signal. |
 | MS SQL Server | Represented conceptually | The source system could be MS SQL Server in a real environment, but the POC simulates the source instead of connecting to one. |
 | DynamoDB | Not used intentionally | No key-value operational store was needed for the core challenge. |
 | Redis / Valkey | Not used intentionally | Caching and ephemeral state were not necessary for the local interview build. |

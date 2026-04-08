@@ -1,8 +1,8 @@
 # Caseware AI-Ready Data Platform POC
 
-A production-shaped POC for a multi-tenant accounting and audit data platform. The goal is not to provide a fully deployable cloud environment. The goal is to present one coherent architecture for the challenge, with real-looking code for the layers and tools the role cares about: Spark, Kafka, Trino, Iceberg, S3, Glue Catalog, Lake Formation, EMR, OpenSearch, Aurora PostgreSQL/pgvector, EKS, Bedrock, LangGraph, Langfuse, CloudWatch, New Relic, and AWS CDK.
+A production-shaped POC for a multi-tenant accounting and audit data platform. The goal is not to provide a fully deployable cloud environment. The goal is to present one coherent architecture for the challenge, with real-looking code for the layers and tools the role cares about: Spark, Kafka, Debezium/Kafka Connect, Trino, Iceberg, S3, Glue Catalog, Lake Formation, EMR, OpenSearch, Aurora PostgreSQL/pgvector, MongoDB, EKS, Bedrock, LangGraph, Langfuse, CloudWatch, New Relic, Docker, and AWS CDK.
 
-Where the repository uses lightweight stand-ins such as DuckDB or deterministic local embeddings, those are implementation shortcuts inside the same architecture, not a second architecture.
+Where the repository uses lightweight stand-ins such as DuckDB or deterministic local embeddings, those are implementation shortcuts inside the same architecture, not a second architecture. For source systems and CDC discussions, the repo also includes a Docker demo stack with PostgreSQL, MongoDB, Kafka, Debezium/Kafka Connect, and OpenSearch.
 
 ## What It Demonstrates
 
@@ -12,6 +12,7 @@ Where the repository uses lightweight stand-ins such as DuckDB or deterministic 
 - Chunking and vector indexing for policies, workpapers, notes, and issue summaries
 - Tenant isolation across storage, transforms, retrieval, and serving
 - Agent-facing routing that keeps exact numbers in SQL and narrative context in RAG
+- Dockerized PostgreSQL and MongoDB sources plus Debezium/Kafka Connect configs for ingestion and CDC walkthroughs
 - Repo-native guardrail skills, rules, contracts, and templates for LLM safety and context management
 - Data quality checks, lineage references, and structured JSON observability
 - Production-shaped code and infrastructure artifacts for the stack named in the challenge
@@ -44,6 +45,11 @@ docs/
   production-reference-stack.md
   skills-and-rules.md
   terminology-mapping.md
+docker/
+  compose.yaml
+  connectors/
+  mongo/
+  postgres/
 guardrails/
   context/
   rules/
@@ -95,6 +101,14 @@ Optional dependencies for the production-shaped stack artifacts:
 pip install -e '.[reference]'
 ```
 
+Optional demo infrastructure for source systems and CDC:
+
+```bash
+make docker-up
+make register-connectors
+make docker-down
+```
+
 API endpoints:
 
 - `GET /health`
@@ -119,6 +133,7 @@ Example query payload:
 - The vector path can be demonstrated locally with deterministic embeddings, but the architecture and interfaces are shaped for OpenSearch or pgvector.
 - Mixed questions trigger a guardrail flow: SQL owns exact values, documents only provide context.
 - The repository uses production-shaped service boundaries even when some components are demo-friendly stand-ins.
+- CDK is the main infrastructure story; Docker is only used where it improves the hands-on demo of OLTP sources and CDC.
 
 ## Demo Questions
 
@@ -142,4 +157,5 @@ Example query payload:
 - [Skills and Rules](docs/skills-and-rules.md)
 - [Terminology Mapping](docs/terminology-mapping.md)
 - [AWS Production Mapping](docs/aws-production-mapping.md)
+- [Docker Demo Stack](docker/README.md)
 - [Interview Walkthrough](docs/interview-walkthrough.md)

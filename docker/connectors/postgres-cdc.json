@@ -1,0 +1,22 @@
+{
+  "name": "caseware-postgres-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres_oltp",
+    "database.port": "5432",
+    "database.user": "caseware",
+    "database.password": "caseware",
+    "database.dbname": "caseware_oltp",
+    "database.server.name": "caseware_postgres",
+    "plugin.name": "pgoutput",
+    "publication.name": "caseware_cdc_publication",
+    "slot.name": "caseware_cdc_slot",
+    "schema.include.list": "accounting",
+    "table.include.list": "accounting.customers,accounting.engagements,accounting.invoices,accounting.controls",
+    "topic.prefix": "cdc.caseware",
+    "decimal.handling.mode": "string",
+    "tombstones.on.delete": "false",
+    "include.schema.changes": "false"
+  }
+}
+

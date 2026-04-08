@@ -1,0 +1,14 @@
+{
+  "name": "caseware-mongodb-documents",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "mongodb.connection.string": "mongodb://mongo_documents:27017/?replicaSet=rs0",
+    "topic.prefix": "cdc.caseware.documents",
+    "database.include.list": "caseware_documents",
+    "collection.include.list": "caseware_documents.audit_documents",
+    "capture.mode": "change_streams_update_full",
+    "tombstones.on.delete": "false",
+    "heartbeat.interval.ms": "10000"
+  }
+}
+

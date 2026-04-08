@@ -20,7 +20,7 @@ Walk through:
 
 Talking points:
 
-- I simulated a CDC feed instead of full reloads.
+- I modeled the structured source as a PostgreSQL OLTP system and included Debezium/Kafka connector configs, even though the demo harness can still run from generated sample data.
 - The sample data includes duplicates, deletes, and late-arriving events because those are the cases that separate toy pipelines from platform work.
 - Bronze preserves replayability.
 - Silver handles dedupe and latest-wins reconciliation.
@@ -41,6 +41,7 @@ Talking points:
 - The vector path is tenant-aware and retention-aware.
 - I kept embeddings local and deterministic so the repo is runnable without credentials, but the abstraction is intentionally swappable.
 - The same repository also shows how this layer maps to OpenSearch and pgvector, so the challenge still demonstrates the right target tools.
+- I also added MongoDB as a plausible document-heavy operational source so the ingestion story is not just file-based.
 
 ## 4. Show the Decision Boundary
 
@@ -74,6 +75,15 @@ Recommended questions to narrate:
 - `What does the OCR workpaper table say about onboarding services and what exact amount is overdue?`
 
 Explain why each route was selected and why that route is the safer one.
+
+If they ask for more operational realism, show:
+
+1. `docker/compose.yaml`
+2. `docker/postgres/init/001_caseware_oltp.sql`
+3. `docker/connectors/postgres-cdc.json`
+4. `docker/mongo/init/001_seed_documents.js`
+5. `src/caseware_poc/integrations/debezium_connect.py`
+6. `src/caseware_poc/integrations/mongo_document_source.py`
 
 ## 6. Close with Trade-Offs
 

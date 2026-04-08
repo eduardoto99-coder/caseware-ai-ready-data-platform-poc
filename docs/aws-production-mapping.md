@@ -6,6 +6,8 @@ This repository already uses an AWS- and platform-shaped architecture for the ch
 
 | Architecture layer | Primary target stack | Repo artifact | Demo note |
 | --- | --- | --- | --- |
+| OLTP source systems | PostgreSQL and MongoDB containers for the demo, mapped to production OLTP/document systems | `docker/compose.yaml`, `docker/postgres/init/*`, `docker/mongo/init/*`, `src/caseware_poc/integrations/mongo_document_source.py` | Docker is used only to strengthen the hands-on source-system story |
+| CDC plumbing | Kafka + Debezium / Kafka Connect | `docker/connectors/*`, `src/caseware_poc/integrations/debezium_connect.py`, `src/caseware_poc/integrations/kafka_cdc_consumer.py` | Connector configs are challenge artifacts, not required to be fully deployed |
 | Bronze, silver, and gold storage | S3 + Iceberg + Glue Catalog + Lake Formation | `jobs/spark/*.py`, `sql/iceberg/medallion_tables.sql`, `infra/cdk/constructs/lakehouse_construct.py`, `src/caseware_poc/integrations/glue_catalog.py` | Local Parquet and DuckDB are used to keep the POC inspectable |
 | Structured transformation runtime | Spark on EMR / EMR Serverless | `jobs/spark/*.py`, `infra/cdk/stacks/data_platform_stack.py` | Local transformation code mirrors the same medallion logic |
 | Exact structured serving | Trino over Iceberg, with Athena for governed analytics | `src/caseware_poc/integrations/trino_client.py`, `sql/trino/gold_serving_views.sql`, `infra/cdk/stacks/data_platform_stack.py` | DuckDB is used as a small-footprint SQL stand-in in the demo harness |

@@ -10,8 +10,11 @@ Implemented in:
 
 - `src/caseware_poc/ingestion/sample_data.py`
 - `src/caseware_poc/ingestion/pipeline.py`
+- `docker/postgres/init/001_caseware_oltp.sql`
+- `docker/connectors/postgres-cdc.json`
 - `jobs/spark/cdc_to_bronze.py`
 - `src/caseware_poc/integrations/kafka_cdc_consumer.py`
+- `src/caseware_poc/integrations/debezium_connect.py`
 
 Coverage:
 
@@ -20,6 +23,7 @@ Coverage:
 - Incremental document ingestion for new/changed records
 - No full reload logic in the serving path
 - Kafka/MSK -> Spark -> Iceberg bronze ingestion path is represented directly in code
+- Dockerized PostgreSQL source and Debezium connector configuration make the CDC story concrete
 
 ## B. Medallion Architecture
 
@@ -45,6 +49,9 @@ Implemented in:
 - `src/caseware_poc/rag/embedding.py`
 - `src/caseware_poc/rag/index.py`
 - `src/caseware_poc/rag/service.py`
+- `docker/mongo/init/001_seed_documents.js`
+- `docker/connectors/mongodb-documents.json`
+- `src/caseware_poc/integrations/mongo_document_source.py`
 - `src/caseware_poc/integrations/opensearch_vector_store.py`
 - `src/caseware_poc/integrations/postgres_pgvector.py`
 - `sql/opensearch/tenant_audit_documents_index.json`
@@ -57,6 +64,7 @@ Coverage:
 - Metadata filtering for `tenant_id`, `doc_type`, and `retention_state`
 - Explicit guardrail that keeps exact facts out of the embedding-first path
 - Implementations for both OpenSearch and pgvector-backed retrieval
+- MongoDB is represented as a document-heavy source for ingestion discussions
 
 ## D. Agent / Query Routing
 
@@ -145,6 +153,7 @@ Coverage:
 Implemented in:
 
 - `infra/cdk/`
+- `docker/`
 - `infra/k8s/`
 - `jobs/spark/`
 - `sql/`
@@ -158,6 +167,7 @@ Coverage:
 - Spark
 - Trino
 - Kafka / MSK
+- Debezium / Kafka Connect
 - S3
 - Glue Catalog
 - Lake Formation
@@ -165,6 +175,7 @@ Coverage:
 - Iceberg
 - EMR Serverless
 - Aurora PostgreSQL
+- MongoDB
 - pgvector
 - OpenSearch Serverless
 - Bedrock
@@ -173,4 +184,5 @@ Coverage:
 - CloudWatch
 - New Relic
 - EKS
+- Docker
 - AWS CDK

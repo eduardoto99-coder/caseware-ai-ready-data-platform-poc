@@ -18,12 +18,13 @@ This POC optimizes for production-shaped clarity rather than deployability.
 - The repository uses production-style boundaries and service names even when some components are simulated or locally substituted for demo purposes.
 - Parquet and DuckDB exist to keep the POC inspectable and runnable without provisioning cloud resources, but the architecture is still expressed as S3, Iceberg, Spark, Trino, OpenSearch, pgvector, Bedrock, and LangGraph.
 - Repo-native LLM safety policy lives in `guardrails/` and is consumed by both the runtime services and the agent orchestration layer.
+- Dockerized PostgreSQL and MongoDB sources exist for walkthroughs where showing concrete OLTP systems and CDC plumbing is more valuable than keeping the demo purely file-backed.
 
 ## 3. End-to-End Data Flow
 
 ### Structured path
 
-1. The challenge models structured ingestion as CDC flowing from OLTP systems into Kafka/MSK topics.
+1. The challenge models structured ingestion as CDC flowing from PostgreSQL OLTP systems into Kafka/MSK topics.
 2. Bronze lands raw events into Iceberg-shaped bronze tables on S3.
 3. Bronze preserves the raw payload and `payload_json` for replayability and schema resilience.
 4. Spark-shaped transforms deduplicate on `event_id`, reconcile out-of-order changes by `(updated_at, source_sequence, emitted_at)`, and produce latest-entity silver snapshots.
@@ -31,7 +32,7 @@ This POC optimizes for production-shaped clarity rather than deployability.
 
 ### Unstructured path
 
-1. Documents are landed with metadata required for tenant-aware retrieval.
+1. Documents are modeled as coming from a document-heavy source such as MongoDB, with metadata required for tenant-aware retrieval.
 2. The chunker normalizes OCR text, detects table-like sections, and uses overlap only for narrative sections.
 3. Chunks are embedded and modeled for OpenSearch Serverless or Aurora PostgreSQL with pgvector.
 4. Retrieval enforces tenant and retention filters before similarity scoring.
@@ -48,10 +49,11 @@ This POC optimizes for production-shaped clarity rather than deployability.
 The repository expresses that architecture through:
 
 1. CDK infrastructure code for S3, Glue Catalog, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL/pgvector, OpenSearch Serverless, EKS, CloudWatch, Bedrock resources, Langfuse secrets, and New Relic secrets
-2. Spark jobs for Kafka-to-Iceberg bronze ingestion and bronze-to-silver-to-gold transforms
-3. Trino SQL DDL and serving views
-4. Integration code for Trino, Postgres/pgvector, OpenSearch, Bedrock, Kafka, and Glue
-5. LangGraph agent orchestration with repo-native guardrail skills, rules, templates, and enforcement code for hallucination control and context management
+2. Docker demo assets for PostgreSQL, MongoDB, Kafka, Debezium/Kafka Connect, and OpenSearch
+3. Spark jobs for Kafka-to-Iceberg bronze ingestion and bronze-to-silver-to-gold transforms
+4. Trino SQL DDL and serving views
+5. Integration code for Trino, Postgres/pgvector, MongoDB, OpenSearch, Debezium/Kafka Connect, Bedrock, Kafka, and Glue
+6. LangGraph agent orchestration with repo-native guardrail skills, rules, templates, and enforcement code for hallucination control and context management
 
 ## 4. Bronze, Silver, Gold Design
 
