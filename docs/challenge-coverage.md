@@ -99,6 +99,7 @@ Documented in:
 - `docs/architecture.md`
 - `docs/aws-production-mapping.md`
 - `docs/interview-walkthrough.md`
+- `docs/terminology-mapping.md`
 
 Coverage:
 

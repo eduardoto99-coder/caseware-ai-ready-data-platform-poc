@@ -40,6 +40,7 @@ docs/
   challenge-coverage.md
   interview-walkthrough.md
   skills-and-rules.md
+  terminology-mapping.md
 scripts/
   run_demo.py
   serve_api.py
@@ -106,5 +107,6 @@ Example query payload:
 - [Architecture](docs/architecture.md)
 - [Challenge Coverage](docs/challenge-coverage.md)
 - [Skills and Rules](docs/skills-and-rules.md)
+- [Terminology Mapping](docs/terminology-mapping.md)
 - [AWS Production Mapping](docs/aws-production-mapping.md)
 - [Interview Walkthrough](docs/interview-walkthrough.md)
