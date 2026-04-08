@@ -1,203 +1,128 @@
 # AI-Ready Data Platform POC
 
-The purpose of the repo is not to be fully deployable.
+This repo is the solution I would walk through for a multi-tenant accounting and audit data platform challenge. It is meant to look like the kind of system I would build for the role, but it is not meant to be deployed as-is.
 
-## Challenge Statement
+## What The POC Covers
 
-Design and implement a production-style reference solution for a multi-tenant AI-ready accounting and audit data platform that supports:
+- Structured data path: PostgreSQL OLTP -> Debezium / Kafka Connect -> Kafka -> Spark -> Iceberg on S3 with Glue Catalog / Lake Formation -> Trino and Athena for governed querying.
+- Unstructured data path: MongoDB documents -> chunking for narrative text and OCR/table-like text -> OpenSearch Serverless or Aurora PostgreSQL with pgvector -> Bedrock for grounded synthesis.
+- Agent path: route exact questions to SQL, narrative questions to retrieval, and mixed questions to a guardrail path where SQL owns the exact answer and documents only provide context.
+- Platform concerns: tenant isolation, lineage, retention, citation-first answers, observability, and CDK / EKS infrastructure artifacts.
 
-1. structured operational and financial data requiring exact SQL-style answers
-2. unstructured audit and policy documents requiring tenant-safe semantic retrieval
-3. explicit routing between structured and unstructured query paths
-4. tenant isolation, observability, quality checks, lineage, and architecture trade-offs
+## How It Is Organized
 
-### Structured path
-
-1. A PostgreSQL OLTP source shows invoices, customers, engagements, controls, and other accounting entities.
-2. Debezium/Kafka Connect connector configs capture change events and publish them into Kafka topics.
-3. Spark jobs model CDC ingestion into bronze Iceberg tables.
-4. Bronze preserves raw payloads and `payload_json` for replayability and historical reprocessing.
-5. Silver deduplicates events, reconciles late and out-of-order changes, and creates normalized snapshots.
-6. Gold creates business-ready products such as invoice summary, engagement status, and control exceptions.
-7. Trino represents the exact structured serving layer for governed answers.
-
-### Unstructured path
-
-1. A MongoDB source represents policy documents, workpapers, engagement notes, and issue summaries.
-2. Documents carry tenant metadata, classification, retention state, and source URIs.
-3. Chunking logic treats narrative text and OCR/table-like text differently.
-4. Embeddings are generated and retrieval is modeled for either OpenSearch Serverless or Aurora PostgreSQL with pgvector.
-5. Retrieval always applies tenant and retention filters before scoring.
-6. Returned answers include citations and warnings when grounding is weak.
-
-### Agent and guardrail path
-
-1. Routing determines whether the question is structured, narrative, or mixed.
-2. Exact finance questions must use SQL-backed gold products.
-3. Narrative questions use tenant-safe retrieval.
-4. Mixed questions execute the precision guardrail path so exact values still come from SQL and documents are only context.
-5. A LangGraph workflow models the production-style multi-step agent orchestration.
-
-### Ingestion and source systems
+### Source systems and ingestion
 
 - `docker/compose.yaml`
-Containerized source-system stack for PostgreSQL, MongoDB, Kafka, Debezium/Kafka Connect, and OpenSearch.
+  Local source-system story for PostgreSQL, MongoDB, Kafka, Debezium/Kafka Connect, and OpenSearch.
 - `docker/postgres/init/001_caseware_oltp.sql`
-OLTP schema, sample rows, replica identity, and publication for CDC.
+  OLTP schema plus CDC publication setup.
 - `docker/mongo/init/001_seed_documents.js`
-Seed document records with tenant metadata.
+  Example document records with tenant metadata, classification, and retention state.
 - `docker/connectors/postgres-cdc.json`
-Debezium PostgreSQL connector config.
+  Debezium PostgreSQL connector config.
 - `docker/connectors/mongodb-documents.json`
-Debezium MongoDB connector config.
+  Debezium MongoDB connector config.
 - `src/caseware_poc/integrations/debezium_connect.py`
-Kafka Connect client for registering connectors.
+  Small Kafka Connect client for registering or checking connectors.
 - `src/caseware_poc/integrations/kafka_cdc_consumer.py`
-Kafka CDC microbatch consumer shape.
+  CDC microbatch consumer shape.
 - `src/caseware_poc/integrations/mongo_document_source.py`
-MongoDB document-source integration.
+  MongoDB document-source integration.
 
-### Lakehouse and transformation layer
+### Lakehouse and serving
 
 - `jobs/spark/cdc_to_bronze.py`
-Kafka to Iceberg bronze ingestion.
+  Kafka to Iceberg bronze ingestion.
 - `jobs/spark/bronze_to_silver.py`
-Deduplication and normalization from bronze to silver.
+  Silver snapshot build with duplicate cleanup and late/out-of-order reconciliation.
 - `jobs/spark/silver_to_gold.py`
-Gold business-product shaping.
+  Gold invoice product build with lineage references.
 - `sql/iceberg/medallion_tables.sql`
-Iceberg table definitions for medallion layers.
-
-### Structured serving
-
+  Bronze, silver, and gold Iceberg table definitions.
 - `sql/trino/gold_serving_views.sql`
-Trino views for gold products.
+  Trino views over gold products.
 - `src/caseware_poc/integrations/trino_client.py`
-Trino client for governed exact queries.
+  Trino client used for exact answers.
 
-### Retrieval and vector layer
+### Retrieval and AI
 
-- `sql/opensearch/tenant_audit_documents_index.json`
-OpenSearch index mapping for tenant-scoped document retrieval.
-- `sql/postgres/init_pgvector.sql`
-PostgreSQL/pgvector schema and indices.
-- `src/caseware_poc/integrations/opensearch_vector_store.py`
-OpenSearch retrieval client.
-- `src/caseware_poc/integrations/postgres_pgvector.py`
-pgvector document-store client.
 - `src/caseware_poc/rag/chunking.py`
-Chunking with OCR/table-aware behavior.
+  Chunking logic for narrative text and OCR/table-like fragments.
+- `sql/opensearch/tenant_audit_documents_index.json`
+  OpenSearch index definition for tenant-aware retrieval.
+- `sql/postgres/init_pgvector.sql`
+  PostgreSQL / pgvector schema and indexing.
+- `src/caseware_poc/integrations/opensearch_vector_store.py`
+  OpenSearch retrieval client.
+- `src/caseware_poc/integrations/postgres_pgvector.py`
+  pgvector store for the alternative vector path.
 - `src/caseware_poc/integrations/bedrock_runtime.py`
-Bedrock-shaped answer synthesis wrapper.
+  Bedrock answer-synthesis wrapper.
 
-### Guardrails, skills, and context management
+### Guardrails and orchestration
 
-- `guardrails/context/system_context.txt`
-Global platform constraints.
-- `guardrails/skills/*.yaml`
-Repo-native skills for exact SQL, tenant-safe RAG, precision guardrails, and context budgeting.
-- `guardrails/rules/*.yaml`
-Routing, retrieval, response, tenant isolation, tooling, and context-budget policies.
+- `guardrails/skills/*.md`
+  Human-readable skill files describing when SQL, RAG, or the mixed guardrail path should be used.
+- `guardrails/rules/*.md`
+  Rule files for routing, retrieval, response behavior, tenant isolation, tooling, and context budget.
 - `guardrails/contracts/answer_contracts.yaml`
-Response-shape requirements per skill.
+  Structured answer-shape expectations per route.
 - `guardrails/templates/response_contract.txt`
-Response contract for the agent layer.
+  Response contract injected into the agent prompt.
 - `guardrails/templates/trino_overdue_query.sql`
-Example exact query template.
+  Example exact query template.
 - `src/caseware_poc/guardrails/registry.py`
-Runtime loader for guardrail assets.
+  Loader for the guardrail files.
 - `src/caseware_poc/serving/router.py`
-Structured vs RAG vs mixed-route selection.
+  Keyword-based route selection.
 - `src/caseware_poc/agents/langgraph_workflow.py`
-Production-shaped agent orchestration.
+  LangGraph workflow showing tenant validation, route selection, retrieval, synthesis, and final guardrail checks.
 - `src/caseware_poc/agents/guardrails.py`
-Agent-side enforcement helpers.
-- `src/caseware_poc/observability/cloudwatch_metrics.py`  
-CloudWatch metric emission shape.
+  Small guardrail functions for tenant checks, citation minimums, SQL-first exactness, and context budgeting.
+
+### Observability and infrastructure
+
+- `src/caseware_poc/observability/cloudwatch_metrics.py`
+  CloudWatch metric emission shape.
 - `src/caseware_poc/observability/langfuse_tracer.py`
-Langfuse query trace model.
+  Langfuse tracing wrapper.
 - `src/caseware_poc/observability/newrelic_monitoring.py`
-New Relic integration config.
+  New Relic integration shape.
 - `infra/cdk/`
-CDK stacks for S3, Glue, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL, OpenSearch, EKS, Bedrock-related resources, and CloudWatch/New Relic/Langfuse setup.
+  CDK stacks for the data platform, AI platform, and observability layers.
 - `infra/k8s/`
-Deployment values and manifests for Trino, Langfuse, New Relic, OpenSearch setup, Spark operator, and the LLM proxy.
+  Kubernetes manifests and Helm values for Trino, Langfuse, New Relic, OpenSearch setup, Spark operator, and the LLM proxy.
 
-## Tools Used
+## Main Technology Choices
 
-### Data and storage
+The repo uses the tools that matter most for the challenge: PostgreSQL, MongoDB, Debezium, Kafka, Spark, S3, Glue Catalog, Lake Formation, Iceberg, Trino, Athena, OpenSearch Serverless, Aurora PostgreSQL, pgvector, Bedrock, LangGraph, Langfuse, CloudWatch, New Relic, EKS, CDK, and Docker.
 
-- PostgreSQL
-- MongoDB
-- Kafka
-- Debezium / Kafka Connect
-- Spark
-- S3
-- Glue Catalog
-- Lake Formation
-- Iceberg
-- Trino
-- Athena
-- OpenSearch Serverless
-- Aurora PostgreSQL
-- pgvector
+I did not try to squeeze in every adjacent AWS service. DocumentDB, DynamoDB, Redis, SNS, SQS, LaunchDarkly, AgentCore, Textract, Step Functions, Lambda, OpenTelemetry, and S3 Vector Storage are either outside the core architecture boundary or would broaden the repo without making the challenge answer stronger.
 
-### AI and orchestration
+## About The Skill And Rule Files
 
-- Bedrock-shaped runtime wrapper
-- LangGraph
-- repo-native skills, rules, contracts, and templates
-- LLM proxy deployment artifact
+I switched the skill and rule assets to Markdown because that is easier to review in an interview and closer to how many AI delivery teams document agent behavior. YAML was not wrong technically, but Markdown is easier to read when someone is scanning the repo live.
 
-### Reliability and platform
+The Markdown files use frontmatter so the code can still load structured fields such as `owned_route`, `required_outputs`, metadata filters, and execution order without turning the repo into a pure prompt collection.
 
-- CloudWatch
-- Langfuse
-- New Relic
-- EKS
-- AWS CDK
-- Docker
+## Suggested Walkthrough
 
-## Tools Not Used
-
-- Amazon DocumentDB
-MongoDB plus the platform artifacts already provide a stronger document-source story for this challenge.
-- DynamoDB
-Not needed for the data-platform boundary being demonstrated.
-- Redis / Valkey  
-Useful for caching, but not central for this
-- SNS / SQS
-The repo already shows Kafka for event-driven plumbing.
-- LaunchDarkly  
-Feature flagging not needed
-
-### Represented conceptually
-
-- Step Functions
-- Lambda
-- AWS AgentCore
-- AWS Textract
-- OpenTelemetry
-- S3 Vector Storage
-
-Production considerations, but not necessary for the challenge
-
-## Suggested Walkthrough Order
+If I were presenting this live, I would go in this order:
 
 1. `README.md`
-2. `docker/compose.yaml`
-3. `docker/postgres/init/001_caseware_oltp.sql`
-4. `docker/connectors/postgres-cdc.json`
-5. `jobs/spark/cdc_to_bronze.py`
-6. `jobs/spark/bronze_to_silver.py`
-7. `sql/iceberg/medallion_tables.sql`
-8. `sql/trino/gold_serving_views.sql`
-9. `src/caseware_poc/rag/chunking.py`
-10. `src/caseware_poc/integrations/opensearch_vector_store.py`
-11. `src/caseware_poc/integrations/postgres_pgvector.py`
-12. `src/caseware_poc/serving/router.py`
-13. `src/caseware_poc/guardrails/registry.py`
-14. `src/caseware_poc/agents/langgraph_workflow.py`
-15. `infra/cdk/stacks/data_platform_stack.py`
-16. `infra/cdk/stacks/ai_platform_stack.py`
-17. `infra/cdk/stacks/observability_stack.py`
+2. `docker/postgres/init/001_caseware_oltp.sql`
+3. `docker/connectors/postgres-cdc.json`
+4. `jobs/spark/cdc_to_bronze.py`
+5. `jobs/spark/bronze_to_silver.py`
+6. `sql/iceberg/medallion_tables.sql`
+7. `sql/trino/gold_serving_views.sql`
+8. `src/caseware_poc/rag/chunking.py`
+9. `src/caseware_poc/integrations/opensearch_vector_store.py`
+10. `src/caseware_poc/serving/router.py`
+11. `guardrails/skills/exact_accounting_sql.md`
+12. `guardrails/rules/tooling.md`
+13. `src/caseware_poc/agents/langgraph_workflow.py`
+14. `infra/cdk/stacks/data_platform_stack.py`
+15. `infra/cdk/stacks/ai_platform_stack.py`
+16. `infra/cdk/stacks/observability_stack.py`

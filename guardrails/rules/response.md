@@ -1,3 +1,4 @@
+---
 response:
   require_citations_for_rag: true
   require_warning_for_guardrail: true
@@ -5,3 +6,6 @@ response:
   insufficient_grounding_message: "No grounded document evidence was found for the tenant-scoped query."
   guardrail_warning_message: "Guardrail applied: exact values are sourced from gold tables; document chunks are returned only as context."
   exact_sql_priority_message: "SQL is the source of truth for balances, counts, and governed financial metrics."
+---
+
+If the system is not well grounded, it should say so plainly instead of smoothing over the gap.

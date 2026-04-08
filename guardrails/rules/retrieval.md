@@ -1,3 +1,4 @@
+---
 retrieval:
   required_metadata_filters:
     - tenant_id
@@ -26,3 +27,6 @@ retrieval:
     workpaper_doc_boost: 0.18
     note_doc_boost: 0.12
     issue_doc_boost: 0.12
+---
+
+Retrieval only runs inside the tenant boundary. Document metadata is part of the access policy, not a cosmetic filter.

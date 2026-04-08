@@ -29,7 +29,7 @@ class AgentState(TypedDict, total=False):
 
 
 class ReferenceLangGraphAgent:
-    """Production-shaped agent graph showing how repo-native skills and rules fit together."""
+    """LangGraph workflow used in this repo."""
 
     def __init__(
         self,
@@ -139,7 +139,7 @@ class ReferenceLangGraphAgent:
             "rag": "tenant_safe_policy_rag",
             "mixed_guardrail": "precision_guardrail",
         }[state["route"]]
-        # Prompt assets stay in repo files so the guardrail contract is reviewable and versioned.
+        # Prompt assets stay in repo files so the behavior is easy to review and version.
         system_prompt = "\n\n".join(
             [
                 self.assets.load_system_context(),

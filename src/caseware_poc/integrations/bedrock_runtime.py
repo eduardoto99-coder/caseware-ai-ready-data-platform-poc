@@ -13,7 +13,7 @@ class BedrockRuntimeConfig:
 
 
 class BedrockAnswerSynthesizer:
-    """Reference Bedrock runtime wrapper with citation-first answer contracts."""
+    """Small Bedrock wrapper used by the agent workflow."""
 
     def __init__(self, config: BedrockRuntimeConfig) -> None:
         self.config = config

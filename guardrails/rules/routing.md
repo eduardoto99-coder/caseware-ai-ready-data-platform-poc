@@ -1,3 +1,4 @@
+---
 routing:
   skill_bindings:
     sql: exact_accounting_sql
@@ -39,3 +40,6 @@ routing:
     - policy
     - workpaper
   mixed_route_warning: Exact financial values must come from structured SQL, while documents may only provide context.
+---
+
+Route by intent, not by whichever store happens to have matching text. Mixed prompts go through the guarded path on purpose.

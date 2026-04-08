@@ -1,6 +1,10 @@
+---
 context_budget:
   max_chunks: 4
   max_total_chars: 8000
   dedupe_by_document: true
   prefer_doc_type_hints: true
   prefer_diversity_across_documents: true
+---
+
+Keep only enough retrieved context to ground the answer. More chunks do not help if they dilute the signal.

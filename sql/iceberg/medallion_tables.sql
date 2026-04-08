@@ -1,4 +1,4 @@
--- Trino/Iceberg DDL for a production-shaped lakehouse layout.
+-- Trino/Iceberg DDL for the lakehouse tables used in this POC.
 
 CREATE TABLE IF NOT EXISTS iceberg.caseware_audit_lakehouse.bronze_structured_events (
     event_id VARCHAR,

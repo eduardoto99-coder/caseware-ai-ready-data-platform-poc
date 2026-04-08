@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import yaml
+from caseware_poc.guardrails.markdown_assets import load_markdown_asset
 
 
 class PromptAssetLoader:
@@ -15,25 +15,21 @@ class PromptAssetLoader:
         self.context_file = self.guardrails_dir / "context" / "system_context.txt"
 
     def load_skill(self, skill_name: str) -> str:
-        path = self.skills_dir / f"{skill_name}.yaml"
-        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        body = str(payload.get("body", "")).strip()
+        path = self.skills_dir / f"{skill_name}.md"
+        payload, body = load_markdown_asset(path)
         title = str(payload.get("title", skill_name)).strip()
-        return f"{title}\n\n{body}".strip()
+        return f"{title}\n\n{body}".strip() if body else title
 
     def load_rules(self, rules_name: str) -> dict:
         if rules_name == "llm_guardrails":
             return {
-                "routing": yaml.safe_load((self.rules_dir / "routing.yaml").read_text(encoding="utf-8"))["routing"],
-                "retrieval": yaml.safe_load((self.rules_dir / "retrieval.yaml").read_text(encoding="utf-8"))[
-                    "retrieval"
-                ],
-                "response": yaml.safe_load((self.rules_dir / "response.yaml").read_text(encoding="utf-8"))[
-                    "response"
-                ],
+                "routing": load_markdown_asset(self.rules_dir / "routing.md")[0]["routing"],
+                "retrieval": load_markdown_asset(self.rules_dir / "retrieval.md")[0]["retrieval"],
+                "response": load_markdown_asset(self.rules_dir / "response.md")[0]["response"],
             }
-        path = self.rules_dir / f"{rules_name}.yaml"
-        return yaml.safe_load(path.read_text(encoding="utf-8"))
+        path = self.rules_dir / f"{rules_name}.md"
+        payload, _ = load_markdown_asset(path)
+        return payload
 
     def load_template(self, template_name: str) -> str:
         suffix = ".sql" if template_name.endswith("_query") else ".txt"

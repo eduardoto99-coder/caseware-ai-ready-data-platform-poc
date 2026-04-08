@@ -18,9 +18,9 @@ def test_guardrail_registry_builds_context_for_mixed_route() -> None:
     context = registry.context_for(route="mixed_guardrail", skill_id="precision_guardrail")
 
     assert context.skill_id == "precision_guardrail"
-    assert "guardrails/rules/routing.yaml" in context.rule_files
-    assert "guardrails/rules/retrieval.yaml" in context.rule_files
-    assert "guardrails/rules/response.yaml" in context.rule_files
+    assert "guardrails/rules/routing.md" in context.rule_files
+    assert "guardrails/rules/retrieval.md" in context.rule_files
+    assert "guardrails/rules/response.md" in context.rule_files
 
 
 def test_prompt_asset_loader_reads_guardrail_assets() -> None:

@@ -8,6 +8,7 @@ import yaml
 
 from caseware_poc.common.models import GuardrailContext
 from caseware_poc.common.paths import project_root
+from caseware_poc.guardrails.markdown_assets import load_markdown_asset
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,8 +73,8 @@ class GuardrailRegistry:
 
     def _load_skills(self) -> dict[str, GuardrailSkill]:
         skills: dict[str, GuardrailSkill] = {}
-        for skill_file in sorted(self.skills_dir.glob("*.yaml")):
-            payload = yaml.safe_load(skill_file.read_text(encoding="utf-8")) or {}
+        for skill_file in sorted(self.skills_dir.glob("*.md")):
+            payload, body = load_markdown_asset(skill_file)
             skills[skill_file.stem] = GuardrailSkill(
                 skill_id=payload["skill_id"],
                 title=payload["title"],
@@ -83,17 +84,17 @@ class GuardrailRegistry:
                 required_outputs=list(payload.get("required_outputs", [])),
                 prohibited_behaviors=list(payload.get("prohibited_behaviors", [])),
                 source_file=str(skill_file.relative_to(self.root_dir)),
-                body=str(payload.get("body", "")).strip(),
+                body=body,
             )
         return skills
 
     def _load_rules(self) -> dict[str, GuardrailRule]:
-        routing_file = self.rules_dir / "routing.yaml"
-        retrieval_file = self.rules_dir / "retrieval.yaml"
-        response_file = self.rules_dir / "response.yaml"
-        routing = yaml.safe_load(routing_file.read_text(encoding="utf-8"))["routing"]
-        retrieval = yaml.safe_load(retrieval_file.read_text(encoding="utf-8"))["retrieval"]
-        response = yaml.safe_load(response_file.read_text(encoding="utf-8"))["response"]
+        routing_file = self.rules_dir / "routing.md"
+        retrieval_file = self.rules_dir / "retrieval.md"
+        response_file = self.rules_dir / "response.md"
+        routing = load_markdown_asset(routing_file)[0]["routing"]
+        retrieval = load_markdown_asset(retrieval_file)[0]["retrieval"]
+        response = load_markdown_asset(response_file)[0]["response"]
         return {
             "tool_routing": GuardrailRule(
                 rule_id="tool_routing",
@@ -183,7 +184,8 @@ class GuardrailRegistry:
         }
 
     def _load_rule_payload(self, rule_name: str) -> dict[str, Any]:
-        rule_file = self.rules_dir / f"{rule_name}.yaml"
+        rule_file = self.rules_dir / f"{rule_name}.md"
         if not rule_file.exists():
             return {}
-        return yaml.safe_load(rule_file.read_text(encoding="utf-8"))[rule_name]
+        payload, _ = load_markdown_asset(rule_file)
+        return payload[rule_name]
