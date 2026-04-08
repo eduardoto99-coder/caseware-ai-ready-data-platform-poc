@@ -18,15 +18,17 @@ class ReferenceArchitecture:
         "Langfuse + CloudWatch + New Relic observability",
         "EKS-hosted serving and analytics components",
     )
-    demo_shortcuts: tuple[str, ...] = (
-        "sample data generator for CDC events and documents",
-        "DuckDB-backed demo harness for exact SQL flows",
-        "deterministic local embeddings for credential-free retrieval demos",
-        "FastAPI query surface for walkthroughs and tests",
+    challenge_capabilities: tuple[str, ...] = (
+        "CDC-style microbatch ingestion from OLTP systems",
+        "Bronze, silver, and gold medallion data products",
+        "Tenant-scoped vector retrieval with metadata filtering",
+        "Structured-vs-unstructured routing with precision guardrails",
+        "Agent orchestration with repo-native skills and rules",
+        "Observability, lineage, and governance-oriented controls",
     )
 
     def as_dict(self) -> dict[str, tuple[str, ...]]:
         return {
             "platform_layers": self.platform_layers,
-            "demo_shortcuts": self.demo_shortcuts,
+            "challenge_capabilities": self.challenge_capabilities,
         }
