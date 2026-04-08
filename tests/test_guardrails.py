@@ -1,7 +1,6 @@
 from caseware_poc.agents.prompt_loader import PromptAssetLoader
 from caseware_poc.common.paths import project_root
 from caseware_poc.guardrails.registry import GuardrailRegistry
-from caseware_poc.production.reference_architecture import ReferenceArchitecture
 
 
 def test_guardrail_registry_loads_skills_and_rules() -> None:
@@ -35,10 +34,3 @@ def test_prompt_asset_loader_reads_guardrail_assets() -> None:
     assert "routing" in rules
     assert "retrieval" in rules
     assert "tenant_id = ?" in template
-
-
-def test_reference_architecture_contains_production_layers() -> None:
-    architecture = ReferenceArchitecture().as_dict()
-
-    assert "S3 + Glue Catalog + Iceberg" in architecture["platform_layers"]
-    assert "Structured-vs-unstructured routing with precision guardrails" in architecture["challenge_capabilities"]

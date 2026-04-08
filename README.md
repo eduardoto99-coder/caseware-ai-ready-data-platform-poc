@@ -119,7 +119,7 @@ Langfuse query trace model.
 - `src/caseware_poc/observability/newrelic_monitoring.py`
 New Relic integration config.
 - `infra/cdk/`
-CDK stacks and constructs for S3, Glue, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL, OpenSearch, EKS, Bedrock-related resources, and CloudWatch/New Relic/Langfuse setup.
+CDK stacks for S3, Glue, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL, OpenSearch, EKS, Bedrock-related resources, and CloudWatch/New Relic/Langfuse setup.
 - `infra/k8s/`
 Deployment values and manifests for Trino, Langfuse, New Relic, OpenSearch setup, Spark operator, and the LLM proxy.
 
