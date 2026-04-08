@@ -1,0 +1,24 @@
+---
+skill_id: context_budget_manager
+title: Context Budget Manager
+purpose: Keep retrieved context compact, relevant, and citation-friendly.
+owned_route: support
+use_for:
+  - chunk selection
+  - citation trimming
+  - response grounding
+required_outputs:
+  - top_relevant_chunks_only
+  - citation_first_responses
+prohibited_behaviors:
+  - never stuff unrelated chunks into the answer
+  - never exceed configured retrieval limits without reason
+---
+
+This support skill governs context management.
+
+Policy:
+
+- Keep only the top `max_results` chunks after filtering and ranking.
+- Prefer precision over recall when exactness matters.
+- If chunk quality is low, return fewer citations rather than more noise.

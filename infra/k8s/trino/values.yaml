@@ -1,0 +1,22 @@
+server:
+  workers: 3
+  autoscaling:
+    enabled: true
+
+catalogs:
+  iceberg: |
+    connector.name=iceberg
+    iceberg.catalog.type=glue
+    hive.metastore.glue.region=us-east-1
+    iceberg.file-format=PARQUET
+    fs.native-s3.enabled=true
+    s3.region=us-east-1
+
+accessControl:
+  type: properties
+  properties: |
+    access-control.name=file
+
+env:
+  - name: CASEWARE_DEFAULT_TENANT_FILTER_MODE
+    value: enforce-before-query

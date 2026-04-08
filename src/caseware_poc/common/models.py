@@ -58,6 +58,14 @@ class RouteDecision(BaseModel):
     rules_fired: list[str]
 
 
+class GuardrailContext(BaseModel):
+    skill_id: str
+    skill_file: str
+    rule_ids: list[str] = Field(default_factory=list)
+    rule_files: list[str] = Field(default_factory=list)
+    enforcement_points: list[str] = Field(default_factory=list)
+
+
 class QueryResponse(BaseModel):
     tenant_id: str
     question: str
@@ -67,3 +75,4 @@ class QueryResponse(BaseModel):
     records: list[dict[str, Any]] = Field(default_factory=list)
     citations: list[RetrievedChunk] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    guardrail_context: GuardrailContext | None = None

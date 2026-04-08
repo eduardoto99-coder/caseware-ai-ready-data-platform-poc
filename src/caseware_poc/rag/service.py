@@ -4,29 +4,36 @@ from time import perf_counter
 
 from caseware_poc.common.models import QueryResponse, RouteDecision
 from caseware_poc.common.runtime import PlatformRuntime
+from caseware_poc.guardrails.registry import GuardrailRegistry
 from caseware_poc.rag.index import SharedVectorIndex
 
 
 class RagAnswerService:
-    def __init__(self, runtime: PlatformRuntime, vector_index: SharedVectorIndex) -> None:
+    def __init__(
+        self,
+        runtime: PlatformRuntime,
+        vector_index: SharedVectorIndex,
+        guardrail_registry: GuardrailRegistry,
+    ) -> None:
         self.runtime = runtime
         self.vector_index = vector_index
+        self.guardrail_registry = guardrail_registry
 
     def answer(self, *, tenant_id: str, question: str, route: RouteDecision) -> QueryResponse:
         started = perf_counter()
-        metadata_filters = {"retention_state": "active"}
+        retrieval_policy = self.guardrail_registry.retrieval_policy
+        metadata_filters = dict(retrieval_policy.get("fixed_filters", {}))
         lowered = question.lower()
-        if "policy" in lowered:
-            metadata_filters["doc_type"] = "policy"
-        elif any(term in lowered for term in ["workpaper", "ocr", "table"]):
-            metadata_filters["doc_type"] = "workpaper"
-        elif "note" in lowered:
-            metadata_filters["doc_type"] = "engagement_note"
+        for doc_type, hints in retrieval_policy.get("doc_type_hints", {}).items():
+            if any(hint in lowered for hint in hints):
+                metadata_filters["doc_type"] = doc_type
+                break
         citations = self.vector_index.search(
             question=question,
             tenant_id=tenant_id,
-            top_k=self.runtime.config.max_retrieval_results,
+            top_k=int(retrieval_policy.get("max_results", self.runtime.config.max_retrieval_results)),
             metadata_filters=metadata_filters,
+            ranking_policy=retrieval_policy.get("ranking", {}),
         )
         answer = self._compose_answer(question, citations)
         latency_ms = round((perf_counter() - started) * 1000, 2)
@@ -42,7 +49,7 @@ class RagAnswerService:
         )
         warnings = []
         if not citations:
-            warnings.append("No active tenant-scoped documents matched the query.")
+            warnings.append(self.guardrail_registry.response_policy["insufficient_grounding_message"])
         return QueryResponse(
             tenant_id=tenant_id,
             question=question,

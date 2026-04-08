@@ -33,3 +33,8 @@ def bootstrap() -> dict:
 def query(request: QueryRequest) -> dict:
     response = platform_app.answer(request.tenant_id, request.question)
     return response.model_dump(mode="json")
+
+
+@api.get("/guardrails")
+def guardrails() -> dict:
+    return platform_app.guardrail_registry.as_payload()

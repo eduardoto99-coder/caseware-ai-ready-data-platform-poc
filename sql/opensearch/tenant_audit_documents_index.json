@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "index": {
+      "knn": true
+    }
+  },
+  "mappings": {
+    "properties": {
+      "tenant_id": { "type": "keyword" },
+      "document_id": { "type": "keyword" },
+      "doc_type": { "type": "keyword" },
+      "classification": { "type": "keyword" },
+      "retention_state": { "type": "keyword" },
+      "source_uri": { "type": "keyword" },
+      "chunk_text": { "type": "text" },
+      "embedding": {
+        "type": "knn_vector",
+        "dimension": 1536,
+        "method": {
+          "name": "hnsw",
+          "engine": "faiss",
+          "space_type": "cosinesimil"
+        }
+      }
+    }
+  }
+}

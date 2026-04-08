@@ -1,0 +1,11 @@
+sparkJobNamespace: spark-jobs
+controller:
+  batchScheduler:
+    enable: false
+  metrics:
+    enable: true
+webhook:
+  enable: true
+spark:
+  jobNamespaces:
+    - spark-jobs

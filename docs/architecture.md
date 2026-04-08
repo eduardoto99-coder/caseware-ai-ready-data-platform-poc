@@ -19,6 +19,8 @@ This POC optimizes for clarity and runnable depth rather than infrastructure bre
 - DuckDB stands in for the analytical serving engine.
 - The vector path uses a deterministic local embedding adapter to keep the repository runnable without external credentials.
 - The serving layer is a thin rules-based interface rather than a full LLM agent runtime. The key design goal is the routing discipline, not generative polish.
+- The repository also includes a production-shaped reference layer with CDK, Spark, Kafka, Iceberg, Trino, Aurora PostgreSQL/pgvector, OpenSearch, Bedrock, LangGraph, Langfuse, EKS, CloudWatch, and New Relic code so the stack aligns more closely with the target role.
+- Repo-native LLM safety policy lives in `guardrails/` and is consumed by both the local runtime and the production-shaped agent path.
 
 ## 3. End-to-End Data Flow
 
@@ -44,6 +46,16 @@ This POC optimizes for clarity and runnable depth rather than infrastructure bre
 2. Exact-value questions route to the SQL skill.
 3. Narrative questions route to the RAG skill.
 4. Mixed questions trigger a precision guardrail flow: SQL answers exact values and RAG supplies contextual evidence only.
+
+### Production reference path
+
+In addition to the runnable local flow, the repository now includes:
+
+1. CDK infrastructure code for S3, Glue Catalog, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL/pgvector, OpenSearch Serverless, EKS, CloudWatch, Bedrock roles, Langfuse secrets, and New Relic secrets
+2. Spark jobs for Kafka-to-Iceberg bronze ingestion and bronze-to-silver-to-gold transforms
+3. Trino SQL DDL and serving views
+4. Integration code for Trino, Postgres/pgvector, OpenSearch, Bedrock, Kafka, and Glue
+5. LangGraph agent orchestration with repo-native guardrail skills, rules, templates, and enforcement code for hallucination control and context management
 
 ## 4. Bronze, Silver, Gold Design
 

@@ -1,51 +1,22 @@
 from __future__ import annotations
 
 from caseware_poc.common.models import RouteDecision
+from caseware_poc.guardrails.registry import GuardrailRegistry
 
-
-SQL_TERMS = {
-    "invoice",
-    "invoices",
-    "overdue",
-    "amount",
-    "total",
-    "sum",
-    "count",
-    "control",
-    "controls",
-    "engagement",
-    "status",
-    "exception",
-    "exceptions",
-}
-
-RAG_TERMS = {
-    "policy",
-    "policies",
-    "workpaper",
-    "notes",
-    "note",
-    "explain",
-    "why",
-    "say",
-    "guidance",
-    "revenue recognition",
-    "deferred revenue",
-}
-
-PRECISION_DOC_TERMS = {"table", "ocr", "document", "policy", "workpaper"}
+_registry = GuardrailRegistry()
 
 
 def route_question(question: str) -> RouteDecision:
+    routing = _registry.routing_terms
     normalized = question.lower()
-    sql_hits = [term for term in SQL_TERMS if term in normalized]
-    rag_hits = [term for term in RAG_TERMS if term in normalized]
-    precision_doc_hits = [term for term in PRECISION_DOC_TERMS if term in normalized]
+    sql_hits = [term for term in routing["sql_terms"] if term in normalized]
+    rag_hits = [term for term in routing["rag_terms"] if term in normalized]
+    precision_doc_hits = [term for term in routing["precision_doc_terms"] if term in normalized]
 
     if sql_hits and precision_doc_hits:
         return RouteDecision(
             route="mixed_guardrail",
-            skill="precision_guardrail",
+            skill=routing["skill_bindings"]["mixed_guardrail"],
             reason="The question mixes exact-value intent with document-oriented cues; SQL must own precise answers.",
             rules_fired=[
                 "exact_value_terms_detected",
@@ -56,13 +27,13 @@ def route_question(question: str) -> RouteDecision:
     if rag_hits and not sql_hits:
         return RouteDecision(
             route="rag",
-            skill="tenant_safe_policy_rag",
+            skill=routing["skill_bindings"]["rag"],
             reason="The question asks for narrative or policy context better served by tenant-scoped retrieval.",
             rules_fired=["narrative_terms_detected", "rag_skill_selected"],
         )
     return RouteDecision(
         route="sql",
-        skill="exact_accounting_sql",
+        skill=routing["skill_bindings"]["sql"],
         reason="The question requests exact operational or financial data available in gold tables.",
         rules_fired=["structured_terms_detected", "sql_skill_selected"],
     )

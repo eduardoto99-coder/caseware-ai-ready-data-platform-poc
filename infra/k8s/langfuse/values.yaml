@@ -1,0 +1,14 @@
+langfuse:
+  env:
+    LANGFUSE_HOST: https://cloud.langfuse.com
+    OTEL_SERVICE_NAME: caseware-ai-platform
+
+postgresql:
+  enabled: false
+
+clickhouse:
+  enabled: false
+
+externalSecret:
+  enabled: true
+  secretName: /caseware/langfuse/public-private-keys

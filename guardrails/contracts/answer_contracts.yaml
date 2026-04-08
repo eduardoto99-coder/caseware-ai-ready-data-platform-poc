@@ -1,0 +1,24 @@
+answer_contracts:
+  exact_accounting_sql:
+    required_fields:
+      - answer
+      - sql
+      - records
+      - route
+      - guardrail_context
+    citation_policy: optional
+  tenant_safe_policy_rag:
+    required_fields:
+      - answer
+      - citations
+      - route
+      - guardrail_context
+    citation_policy: required
+  precision_guardrail:
+    required_fields:
+      - answer
+      - warnings
+      - citations
+      - route
+      - guardrail_context
+    citation_policy: required_for_context

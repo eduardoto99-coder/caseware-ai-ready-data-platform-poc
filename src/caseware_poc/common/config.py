@@ -17,6 +17,7 @@ class AppConfig(BaseModel):
     quality_dir: Path
     log_dir: Path
     sample_data_dir: Path
+    guardrails_dir: Path
     db_path: Path
     batch_size: int = Field(default=6)
     max_retrieval_results: int = Field(default=4)
@@ -35,5 +36,6 @@ class AppConfig(BaseModel):
             quality_dir=data_dir / "quality",
             log_dir=data_dir / "logs",
             sample_data_dir=root_dir / "sample_data",
+            guardrails_dir=root_dir / "guardrails",
             db_path=data_dir / "platform.duckdb",
         )

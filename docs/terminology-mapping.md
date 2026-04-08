@@ -4,7 +4,8 @@ This document answers a specific interview question: which platform, data, AI, g
 
 Status meanings:
 
-- `Used directly`: implemented in the local code or runtime behavior
+- `Used directly (local path)`: implemented in the runnable local code path
+- `Used directly (reference path)`: implemented in the production-shaped reference code or infrastructure files
 - `Represented conceptually`: not deployed as the named product/service, but the POC models the idea or documents how it maps to production
 - `Not used intentionally`: left out to keep the reference implementation small, runnable, and focused on the core problem
 
@@ -16,7 +17,7 @@ Status meanings:
 | Warehouse pattern | Represented conceptually | The DuckDB gold-serving layer acts like a lightweight warehouse pattern for governed business queries, but the repo does not stand up a separate warehouse product. |
 | Medallion architecture | Used directly | Bronze, silver, and gold layers are core to the implementation and are explicitly documented and materialized. |
 | Data product | Used directly | `gold_invoice_summary`, `gold_engagement_status`, and `gold_control_exceptions` are treated as governed data products with stable semantics and lineage. |
-| Interoperability | Represented conceptually | The POC is local, but it emphasizes clean data contracts, tenant-safe APIs, and production mapping for secure interoperability with downstream AI or customer systems. |
+| Interoperability | Represented conceptually | The repo emphasizes tenant-safe APIs, SQL products, and governed retrieval boundaries, but it does not integrate with external customer systems in the local runtime. |
 
 ## Data Movement and Modeling Terms
 
@@ -33,7 +34,7 @@ Status meanings:
 | CDC / change tracking | Used directly | The structured path models inserts, updates, deletes, duplicates, and late/out-of-order changes. |
 | Historical reprocessing | Used directly | Bronze is replayable and the entire pipeline can be rebuilt from raw data by rerunning bootstrap/demo flows. |
 | Indexing | Used directly | The vector path builds a retrieval index, and the docs explain indexing as part of the AI path. |
-| Partitioning | Represented conceptually | Tenant and batch boundaries exist, but physical Parquet partitioning by tenant/date was intentionally not added to keep the POC compact. |
+| Partitioning | Used directly (reference path) | Iceberg and Spark reference files show partitioned bronze/gold tables in `sql/iceberg/medallion_tables.sql` and `jobs/spark/silver_to_gold.py`. |
 
 ## AI and LLM Terms
 
@@ -42,8 +43,8 @@ Status meanings:
 | Embeddings | Used directly | `src/caseware_poc/rag/embedding.py` creates deterministic local embeddings for the vector path. |
 | Vector retrieval | Used directly | `src/caseware_poc/rag/index.py` performs tenant-scoped vector retrieval over chunk embeddings. |
 | RAG | Used directly | The document path is a tenant-safe RAG implementation with citations and retrieval filters. |
-| Agentic systems | Represented conceptually | The serving layer is rules-based rather than a full autonomous agent, but it models agent-facing routing, skill selection, and tool choice. |
-| LLM tooling / AI platform integration | Represented conceptually | The repo deliberately avoids external model dependencies, but the routing, chunking, retrieval, and production mapping documents the broader AI platform integration story. |
+| Agentic systems | Used directly (reference path) | `src/caseware_poc/agents/langgraph_workflow.py` models a multi-step agent workflow with route selection, tool use, synthesis, and guardrail enforcement. |
+| LLM tooling / AI platform integration | Used directly (reference path) | Bedrock, LangGraph, Langfuse, repo-native guardrails, and the LLM proxy deployment are all represented in the reference path. |
 
 ## Governance and Security Terms
 
@@ -67,32 +68,32 @@ Status meanings:
 | Traceability | Used directly | Outputs can be traced through source event IDs, batch IDs, and logs. |
 | Data dictionary controls | Represented conceptually | The POC documents stable field meanings, but it does not implement a dedicated data dictionary service. |
 | Freshness monitoring | Used directly | The quality report computes freshness metrics from `updated_at` and `emitted_at`. |
-| Alerting | Not used intentionally | The POC records the signals that would drive alerting, but it does not wire a notification system because there is no long-running scheduler in the local build. |
+| Alerting | Used directly (reference path) | `infra/cdk/stacks/observability_stack.py` creates a CloudWatch alarm for freshness lag. |
 | Observability | Used directly | Structured JSON logs are produced for ingestion, quality checks, SQL, retrieval, and index builds. |
 
 ## AWS and Platform Tools
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| S3 | Represented conceptually | Local Parquet files stand in for S3 and the mapping is documented in [aws-production-mapping.md](./aws-production-mapping.md). |
+| S3 | Used directly (reference path) | CDK, Spark, and Iceberg reference code use S3-backed bronze/silver/gold locations. |
 | S3 Express | Not used intentionally | Lower-latency S3 classes are production optimization details, not necessary for a local interview POC. |
-| Athena | Represented conceptually | DuckDB plays the role of serverless SQL over lakehouse-style data for the local build. |
-| Glue Catalog | Represented conceptually | Table metadata is local in the POC, with Glue Catalog described as the production metadata layer. |
-| Lake Formation | Represented conceptually | Governance is enforced in code and docs locally; Lake Formation is discussed as the production governance control plane. |
-| OpenSearch Serverless | Represented conceptually | The local vector index stands in for a managed vector/search backend. |
+| Athena | Used directly (reference path) | `infra/cdk/stacks/data_platform_stack.py` provisions an Athena workgroup for governed analytics. |
+| Glue Catalog | Used directly (reference path) | CDK and integration code define Glue Catalog databases and Iceberg table registration. |
+| Lake Formation | Used directly (reference path) | CDK code registers S3 lakehouse resources for governed access. |
+| OpenSearch Serverless | Used directly (reference path) | CDK, index JSON, and integration code define a tenant-aware OpenSearch vector store. |
 | S3 Vector Storage | Represented conceptually | The repo persists vectors locally and maps this to AWS vector storage options in production. |
-| Iceberg | Represented conceptually | The POC uses Parquet only; Iceberg is documented as the production table format for schema evolution and snapshots. |
+| Iceberg | Used directly (reference path) | Spark jobs and SQL DDL define Iceberg-backed bronze, silver, and gold tables. |
 | Lambda | Represented conceptually | The repo uses scripts and a local API; Lambda is part of the production orchestration mapping. |
 | Step Functions | Represented conceptually | Workflow sequencing is local, with Step Functions described for production orchestration. |
-| EKS | Not used intentionally | Container orchestration would be excessive for a local reference implementation of this size. |
-| EMR / EMR Serverless | Represented conceptually | Local transforms stand in for Spark-style processing, with EMR discussed as the production runtime. |
+| EKS | Used directly (reference path) | CDK and Kubernetes values files model EKS-hosted Trino and observability components. |
+| EMR / EMR Serverless | Used directly (reference path) | CDK creates EMR Serverless application scaffolding and Spark jobs target that runtime. |
 
 ## Processing Frameworks
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| Spark | Represented conceptually | The transformation logic is written so it can map cleanly to Spark, but the local POC uses DuckDB/Python for simplicity and reproducibility. |
-| Trino | Represented conceptually | DuckDB serves the same broad analytical-query purpose locally, while Trino is discussed as a production option. |
+| Spark | Used directly (reference path) | `jobs/spark/` contains PySpark jobs for Kafka-to-Iceberg bronze and medallion transformations. |
+| Trino | Used directly (reference path) | Trino client code, Helm values, and serving SQL are part of the reference stack. |
 | MapReduce | Not used intentionally | It is historically relevant but not necessary to demonstrate the target architecture for this challenge. |
 
 ## Databases and Messaging Tools
@@ -106,32 +107,32 @@ Status meanings:
 | Redis / Valkey | Not used intentionally | Caching and ephemeral state were not necessary for the local interview build. |
 | SNS | Not used intentionally | There is no asynchronous production event fan-out requirement in the local POC. |
 | SQS | Not used intentionally | Queueing is not necessary for the single-process reference implementation. |
-| Kafka / Pub/Sub | Represented conceptually | The CDC event stream models streaming/event thinking, but the POC uses microbatches instead of a real broker. |
-| Aurora PostgreSQL | Represented conceptually | A production serving layer could use Aurora PostgreSQL, but the local POC keeps all exact querying in DuckDB. |
-| pgvector | Represented conceptually | The local vector index serves the same retrieval role without adding a relational vector store. |
+| Kafka / Pub/Sub | Used directly (reference path) | MSK/CDK scaffolding, Kafka consumer code, and Spark Structured Streaming jobs are included. |
+| Aurora PostgreSQL | Used directly (reference path) | CDK and connector code model Aurora PostgreSQL as a production relational/vector backing store. |
+| pgvector | Used directly (reference path) | PostgreSQL schema, connector code, and vector-search patterns are included. |
 
 ## AI Platform and Agent Tools
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| AWS Bedrock | Represented conceptually | The repo avoids managed-model dependencies, but Bedrock is identified as the production model/embedding platform. |
-| AWS AgentCore | Represented conceptually | The POC has skill and routing concepts, while AgentCore is part of the documented production evolution. |
-| LangGraph | Represented conceptually | Query orchestration is deliberately simpler than LangGraph, but the production docs call it out as a natural next step. |
-| Langfuse | Represented conceptually | The repo logs retrieval and routing signals locally, while Langfuse is a plausible production observability/evaluation layer. |
+| AWS Bedrock | Used directly (reference path) | Bedrock runtime wrapper and CDK Bedrock runtime role are included in code. |
+| AWS AgentCore | Represented conceptually | The repo models agent runtime concepts directly in LangGraph and guardrail code instead of adding an AgentCore-specific implementation. |
+| LangGraph | Used directly (reference path) | The repo now includes a LangGraph workflow that ties guardrail skills, Trino, OpenSearch, Bedrock, and Langfuse together. |
+| Langfuse | Used directly (reference path) | A Langfuse tracer wrapper and Kubernetes values are included. |
 | MCP | Represented conceptually | The skill-and-tool idea aligns with MCP-style context and tool connectivity, but the POC does not implement an MCP server. |
 | LaunchDarkly | Not used intentionally | Feature flagging is useful for controlled rollout, but not required to prove the platform architecture. |
-| AWS Knowledge Bases | Represented conceptually | The local RAG path stands in for managed retrieval infrastructure. |
+| AWS Knowledge Bases | Used directly (reference path) | `infra/cdk/stacks/ai_platform_stack.py` defines a Bedrock Knowledge Base and S3 data source. |
 | AWS Textract | Represented conceptually | The hard OCR-like document simulates the kind of document that Textract would help extract in production. |
-| LLM proxy layer | Represented conceptually | The routing layer plays a lightweight proxy role for policy, logging, and path selection, but not a full model gateway. |
+| LLM proxy layer | Used directly (reference path) | The LangGraph workflow plus guardrail assets model a central policy and tool-routing layer. |
 
 ## DevOps and Operations
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| CI/CD pipelines | Represented conceptually | The repo has tests and clean commands, but no hosted CI/CD workflow file was added yet. |
-| Infrastructure as code | Not used intentionally | This build stays local and code-centric; IaC would be added if the next step were a deployable AWS reference environment. |
-| CloudWatch | Represented conceptually | Local JSON logs map naturally to CloudWatch in the production design. |
-| New Relic | Not used intentionally | The challenge did not require a third-party APM platform, and CloudWatch/OpenTelemetry are the more natural AWS-aligned mapping. |
+| CI/CD pipelines | Represented conceptually | The repo has tests and infra code, but no hosted CI/CD workflow file was added yet. |
+| Infrastructure as code | Used directly (reference path) | The CDK application and constructs under `infra/cdk/` are infrastructure-as-code artifacts. |
+| CloudWatch | Used directly (reference path) | CDK defines CloudWatch log groups and the repo includes EMF metric rendering. |
+| New Relic | Used directly (reference path) | EKS values and config helpers show how New Relic would be wired into the stack. |
 | OpenTelemetry | Represented conceptually | The observability design is compatible with OpenTelemetry-style traces and metrics, but the POC uses a simpler local logger. |
 
 ## Why Some Terms Were Not Implemented

@@ -1,0 +1,12 @@
+global:
+  licenseKeySecretName: /caseware/newrelic/license-key
+  cluster: caseware-ai-platform-eks
+
+newrelic-infrastructure:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+pixie-chart:
+  enabled: false

@@ -24,3 +24,17 @@ def test_bootstrap_and_query_api_flow() -> None:
     payload = query_response.json()
     assert payload["route"]["route"] == "sql"
     assert payload["records"][0]["total_overdue_amount"] == 12500.0
+
+
+def test_guardrails_endpoint_exposes_repo_native_assets() -> None:
+    response = client.get("/guardrails")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "skills" in payload
+    assert "routing" in payload
+    assert "retrieval" in payload
+    assert "response" in payload
+    assert "tenant_isolation" in payload
+    assert "tooling" in payload
+    assert "context_budget" in payload
+    assert "answer_contracts" in payload

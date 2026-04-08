@@ -45,6 +45,7 @@ class SharedVectorIndex:
         tenant_id: str,
         top_k: int,
         metadata_filters: dict[str, Any] | None = None,
+        ranking_policy: dict[str, Any] | None = None,
     ) -> list[RetrievedChunk]:
         metadata_filters = metadata_filters or {}
         chunk_metadata = self._load_metadata()
@@ -63,6 +64,7 @@ class SharedVectorIndex:
         scores = scores + self._heuristic_boosts(
             question=question,
             chunks=[chunk_metadata[index] for index in eligible_indexes],
+            ranking_policy=ranking_policy or {},
         )
         ranking = np.argsort(scores)[::-1][:top_k]
         results: list[RetrievedChunk] = []
@@ -139,7 +141,13 @@ class SharedVectorIndex:
     def _load_vectors(self) -> np.ndarray:
         return np.load(self.vector_path)
 
-    def _heuristic_boosts(self, *, question: str, chunks: list[dict[str, Any]]) -> np.ndarray:
+    def _heuristic_boosts(
+        self,
+        *,
+        question: str,
+        chunks: list[dict[str, Any]],
+        ranking_policy: dict[str, Any],
+    ) -> np.ndarray:
         lowered = question.lower()
         query_terms = set(re.findall(r"[a-z0-9_]+", lowered))
         boost_values = []
@@ -148,14 +156,15 @@ class SharedVectorIndex:
             overlap_ratio = len(query_terms & chunk_terms) / max(len(query_terms), 1)
             doc_type_boost = 0.0
             if "policy" in lowered and chunk["doc_type"] == "policy":
-                doc_type_boost += 0.18
+                doc_type_boost += float(ranking_policy.get("policy_doc_boost", 0.18))
             if any(term in lowered for term in ["workpaper", "ocr", "table"]) and chunk["doc_type"] == "workpaper":
-                doc_type_boost += 0.18
+                doc_type_boost += float(ranking_policy.get("workpaper_doc_boost", 0.18))
             if "note" in lowered and chunk["doc_type"] == "engagement_note":
-                doc_type_boost += 0.12
+                doc_type_boost += float(ranking_policy.get("note_doc_boost", 0.12))
             if "issue" in lowered and chunk["doc_type"] == "issue_summary":
-                doc_type_boost += 0.12
-            boost_values.append((overlap_ratio * 0.25) + doc_type_boost)
+                doc_type_boost += float(ranking_policy.get("issue_doc_boost", 0.12))
+            lexical_overlap_boost = float(ranking_policy.get("lexical_overlap_boost", 0.25))
+            boost_values.append((overlap_ratio * lexical_overlap_boost) + doc_type_boost)
         return np.array(boost_values, dtype=np.float32)
 
 

@@ -6,6 +6,7 @@ from typing import Any
 
 from caseware_poc.common.config import AppConfig
 from caseware_poc.common.runtime import PlatformRuntime
+from caseware_poc.guardrails.registry import GuardrailRegistry
 from caseware_poc.ingestion.pipeline import IngestionPipeline
 from caseware_poc.ingestion.sample_data import write_sample_data
 from caseware_poc.rag.embedding import HashEmbeddingProvider
@@ -20,12 +21,14 @@ class PlatformApp:
     def __init__(self, root_dir: Path) -> None:
         self.config = AppConfig.from_root(root_dir)
         self.runtime = PlatformRuntime.create(self.config)
+        self.guardrail_registry = GuardrailRegistry(root_dir)
         self.embedding_provider = HashEmbeddingProvider(self.config.embedding_dimensions)
         self.vector_index = SharedVectorIndex(self.runtime, self.embedding_provider)
         self.query_service = QueryOrchestrator(
             self.runtime,
             StructuredQueryService(self.runtime),
-            RagAnswerService(self.runtime, self.vector_index),
+            RagAnswerService(self.runtime, self.vector_index, self.guardrail_registry),
+            self.guardrail_registry,
         )
 
     def reset(self) -> None:

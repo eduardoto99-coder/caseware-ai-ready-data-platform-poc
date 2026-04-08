@@ -17,6 +17,7 @@ dependencies = [
   "fastapi>=0.135.3",
   "numpy>=2.4.4",
   "pydantic>=2.12.5",
+  "PyYAML>=6.0.2",
   "uvicorn>=0.44.0",
 ]
 
@@ -24,6 +25,35 @@ dependencies = [
 dev = [
   "httpx>=0.28.1",
   "pytest>=9.0.3",
+]
+reference = [
+  "aws-cdk-lib>=2.160.0",
+  "boto3>=1.38.0",
+  "confluent-kafka>=2.8.2",
+  "constructs>=10.4.2",
+  "langfuse>=2.60.3",
+  "langgraph>=0.4.5",
+  "newrelic>=10.11.0",
+  "opensearch-py>=2.8.0",
+  "pgvector>=0.4.1",
+  "psycopg[binary]>=3.2.9",
+  "pyspark>=3.5.5",
+  "trino>=0.336.0",
+]
+prod-reference = [
+  "aws-cdk-lib>=2.180.0",
+  "boto3>=1.39.0",
+  "constructs>=10.4.2",
+  "confluent-kafka>=2.8.0",
+  "langfuse>=2.60.3",
+  "langgraph>=0.2.74",
+  "newrelic-telemetry-sdk>=0.10.0",
+  "opensearch-py>=2.8.0",
+  "pgvector>=0.3.6",
+  "PyYAML>=6.0.2",
+  "psycopg[binary]>=3.2.9",
+  "pyspark>=3.5.5",
+  "trino>=0.336.0",
 ]
 
 [tool.setuptools]

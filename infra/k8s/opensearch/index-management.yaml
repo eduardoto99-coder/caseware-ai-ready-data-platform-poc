@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: caseware-opensearch-index-bootstrap
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: bootstrap-index
+          image: curlimages/curl:8.10.1
+          command:
+            - sh
+            - -c
+            - |
+              curl -X PUT "$OPENSEARCH_URL/tenant-audit-documents" \
+                -H "Content-Type: application/json" \
+                --data-binary @/config/tenant_audit_documents_index.json

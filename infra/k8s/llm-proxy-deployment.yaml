@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caseware-llm-proxy
+  namespace: ai-platform
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: caseware-llm-proxy
+  template:
+    metadata:
+      labels:
+        app: caseware-llm-proxy
+    spec:
+      serviceAccountName: caseware-llm-proxy
+      containers:
+        - name: llm-proxy
+          image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/caseware-llm-proxy:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: BEDROCK_MODEL_ID
+              value: anthropic.claude-3-7-sonnet-20250219-v1:0
+            - name: OPENSEARCH_COLLECTION_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: ai-platform-secrets
+                  key: opensearchEndpoint
+            - name: PGVECTOR_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: ai-platform-secrets
+                  key: pgvectorDsn
+            - name: LANGFUSE_HOST
+              value: https://langfuse.caseware.example.com
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
