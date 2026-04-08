@@ -115,7 +115,6 @@ class ReferenceLangGraphAgent:
         response = self.opensearch_index.tenant_scoped_search(
             tenant_id=state["tenant_id"],
             query_text=state["question"],
-            query_vector=[0.0] * 1536,
             top_k=4,
         )
         hits = response.get("hits", {}).get("hits", [])

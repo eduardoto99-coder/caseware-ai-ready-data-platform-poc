@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -10,7 +11,7 @@ def emit_embedded_metric(namespace: str, dimensions: dict[str, str], metrics: di
     return json.dumps(
         {
             "_aws": {
-                "Timestamp": 0,
+                "Timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
                 "CloudWatchMetrics": [
                     {
                         "Namespace": namespace,

@@ -41,12 +41,6 @@ class TrinoServingClient:
         cursor.execute(
             "SET SESSION iceberg.security = 'lakeformation'",
         )
-        cursor.execute(
-            """
-            -- Application code always injects the tenant filter before query execution.
-            -- The final SQL is expected to hit Iceberg-backed gold tables in Glue Catalog.
-            """
-        )
         cursor.execute(sql, (tenant_id,))
         columns = [column[0] for column in cursor.description]
         return [dict(zip(columns, row, strict=True)) for row in cursor.fetchall()]
