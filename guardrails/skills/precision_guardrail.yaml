@@ -1,4 +1,3 @@
----
 skill_id: precision_guardrail
 title: Precision Guardrail
 purpose: Prevent hallucinated or weakly grounded exact answers when structured and unstructured intent are mixed.
@@ -14,12 +13,11 @@ required_outputs:
 prohibited_behaviors:
   - never let RAG own exact balances
   - never suppress the guardrail warning
----
+body: |
+  Use this skill when the prompt contains both exact-value terms and document-oriented terms.
 
-Use this skill when the prompt contains both exact-value terms and document-oriented terms.
+  Guardrail policy:
 
-Guardrail policy:
-
-1. Execute the structured SQL path for exact values.
-2. Execute the retrieval path only for explanation or context.
-3. Return an explicit warning that documents are context-only in this answer.
+  1. Execute the structured SQL path for exact values.
+  2. Execute the retrieval path only for explanation or context.
+  3. Return an explicit warning that documents are context-only in this answer.

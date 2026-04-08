@@ -12,11 +12,14 @@ class PromptAssetLoader:
         self.skills_dir = self.guardrails_dir / "skills"
         self.rules_dir = self.guardrails_dir / "rules"
         self.templates_dir = self.guardrails_dir / "templates"
-        self.context_file = self.guardrails_dir / "context" / "system_context.md"
+        self.context_file = self.guardrails_dir / "context" / "system_context.txt"
 
     def load_skill(self, skill_name: str) -> str:
-        path = self.skills_dir / f"{skill_name}.md"
-        return path.read_text(encoding="utf-8")
+        path = self.skills_dir / f"{skill_name}.yaml"
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        body = str(payload.get("body", "")).strip()
+        title = str(payload.get("title", skill_name)).strip()
+        return f"{title}\n\n{body}".strip()
 
     def load_rules(self, rules_name: str) -> dict:
         if rules_name == "llm_guardrails":
@@ -33,7 +36,7 @@ class PromptAssetLoader:
         return yaml.safe_load(path.read_text(encoding="utf-8"))
 
     def load_template(self, template_name: str) -> str:
-        suffix = ".sql" if template_name.endswith("_query") else ".md"
+        suffix = ".sql" if template_name.endswith("_query") else ".txt"
         path = self.templates_dir / f"{template_name}{suffix}"
         return path.read_text(encoding="utf-8")
 

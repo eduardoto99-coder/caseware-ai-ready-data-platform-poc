@@ -43,7 +43,7 @@ class GuardrailRegistry:
         self.skills_dir = self.root_dir / "guardrails" / "skills"
         self.rules_dir = self.root_dir / "guardrails" / "rules"
         self.contracts_dir = self.root_dir / "guardrails" / "contracts"
-        self.context_file = self.root_dir / "guardrails" / "context" / "system_context.md"
+        self.context_file = self.root_dir / "guardrails" / "context" / "system_context.txt"
         self._skills = self._load_skills()
         self._rules = self._load_rules()
         self.system_context = self.context_file.read_text(encoding="utf-8").strip()
@@ -70,18 +70,18 @@ class GuardrailRegistry:
 
     def _load_skills(self) -> dict[str, GuardrailSkill]:
         skills: dict[str, GuardrailSkill] = {}
-        for skill_file in sorted(self.skills_dir.glob("*.md")):
-            metadata, body = _parse_front_matter(skill_file)
+        for skill_file in sorted(self.skills_dir.glob("*.yaml")):
+            payload = yaml.safe_load(skill_file.read_text(encoding="utf-8")) or {}
             skills[skill_file.stem] = GuardrailSkill(
-                skill_id=metadata["skill_id"],
-                title=metadata["title"],
-                purpose=metadata["purpose"],
-                owned_route=metadata["owned_route"],
-                use_for=list(metadata.get("use_for", [])),
-                required_outputs=list(metadata.get("required_outputs", [])),
-                prohibited_behaviors=list(metadata.get("prohibited_behaviors", [])),
+                skill_id=payload["skill_id"],
+                title=payload["title"],
+                purpose=payload["purpose"],
+                owned_route=payload["owned_route"],
+                use_for=list(payload.get("use_for", [])),
+                required_outputs=list(payload.get("required_outputs", [])),
+                prohibited_behaviors=list(payload.get("prohibited_behaviors", [])),
                 source_file=str(skill_file.relative_to(self.root_dir)),
-                body=body,
+                body=str(payload.get("body", "")).strip(),
             )
         return skills
 
@@ -185,12 +185,3 @@ class GuardrailRegistry:
         if not rule_file.exists():
             return {}
         return yaml.safe_load(rule_file.read_text(encoding="utf-8"))[rule_name]
-
-
-def _parse_front_matter(path: Path) -> tuple[dict[str, Any], str]:
-    content = path.read_text(encoding="utf-8")
-    if not content.startswith("---\n"):
-        raise ValueError(f"Skill file {path} is missing YAML front matter.")
-    _, front_matter, body = content.split("---", 2)
-    metadata = yaml.safe_load(front_matter) or {}
-    return metadata, body.strip()

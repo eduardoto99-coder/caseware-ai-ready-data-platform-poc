@@ -1,4 +1,4 @@
-# AI-Ready Accounting Platform Context
+AI-Ready Accounting Platform Context
 
 This platform serves multi-tenant accounting and audit workloads.
 
