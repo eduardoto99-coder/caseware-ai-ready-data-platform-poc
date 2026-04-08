@@ -1,23 +1,18 @@
 # AWS Production Mapping
 
-The local implementation is intentionally small. This file shows how the same contracts and boundaries would translate into a production AWS stack.
+This repository already uses an AWS- and platform-shaped architecture for the challenge. This file explains how each layer is expressed in the codebase and where lightweight stand-ins are used to avoid provisioning real infrastructure.
 
-The repository now also contains production-shaped reference files for many of these services under `infra/`, `jobs/`, `sql/`, `guardrails/`, `src/caseware_poc/integrations/`, `src/caseware_poc/agents/`, and `src/caseware_poc/observability/`.
+## Stack to Artifact Mapping
 
-## Local to AWS Mapping
-
-| Local POC component | Production AWS equivalent | Repo artifact |
-| --- | --- | --- |
-| Parquet bronze/silver/gold files | S3 + Iceberg | `jobs/spark/*.py`, `sql/iceberg/medallion_tables.sql`, `infra/cdk/constructs/lakehouse_construct.py` |
-| Local table discovery | Glue Data Catalog | `src/caseware_poc/integrations/glue_catalog.py`, `infra/cdk/stacks/data_platform_stack.py` |
-| Tenant-aware governed access assumptions | Lake Formation | `infra/cdk/constructs/lakehouse_construct.py`, `src/caseware_poc/integrations/trino_client.py` |
-| DuckDB transforms | EMR / EMR Serverless Spark | `jobs/spark/*.py`, `infra/cdk/stacks/data_platform_stack.py` |
-| DuckDB gold serving | Trino over Iceberg or Athena | `src/caseware_poc/integrations/trino_client.py`, `sql/trino/gold_serving_views.sql` |
-| Local vector index | OpenSearch Serverless or Aurora PostgreSQL with pgvector | `src/caseware_poc/integrations/opensearch_vector_store.py`, `src/caseware_poc/integrations/postgres_pgvector.py`, `sql/opensearch/*`, `sql/postgres/*` |
-| Local JSON logs | CloudWatch + Langfuse + New Relic | `src/caseware_poc/observability/*`, `infra/cdk/stacks/observability_stack.py`, `infra/k8s/langfuse/values.yaml`, `infra/k8s/newrelic/values.yaml` |
-| Rules-based API | EKS-hosted API and LLM proxy | `infra/cdk/stacks/data_platform_stack.py`, `infra/k8s/llm-proxy-deployment.yaml` |
-| Local orchestration inside scripts | MSK + EMR Serverless + Bedrock + EKS workflow | `jobs/spark/*.py`, `src/caseware_poc/agents/langgraph_workflow.py`, `infra/cdk/stacks/*.py` |
-| Local guardrail registry | Repo-native guardrails + Bedrock/LangGraph prompt assembly | `guardrails/*`, `src/caseware_poc/guardrails/registry.py`, `src/caseware_poc/agents/prompt_loader.py` |
+| Architecture layer | Primary target stack | Repo artifact | Demo note |
+| --- | --- | --- | --- |
+| Bronze, silver, and gold storage | S3 + Iceberg + Glue Catalog + Lake Formation | `jobs/spark/*.py`, `sql/iceberg/medallion_tables.sql`, `infra/cdk/constructs/lakehouse_construct.py`, `src/caseware_poc/integrations/glue_catalog.py` | Local Parquet and DuckDB are used to keep the POC inspectable |
+| Structured transformation runtime | Spark on EMR / EMR Serverless | `jobs/spark/*.py`, `infra/cdk/stacks/data_platform_stack.py` | Local transformation code mirrors the same medallion logic |
+| Exact structured serving | Trino over Iceberg, with Athena for governed analytics | `src/caseware_poc/integrations/trino_client.py`, `sql/trino/gold_serving_views.sql`, `infra/cdk/stacks/data_platform_stack.py` | DuckDB is used as a small-footprint SQL stand-in in the demo harness |
+| Document retrieval | OpenSearch Serverless or Aurora PostgreSQL with pgvector | `src/caseware_poc/integrations/opensearch_vector_store.py`, `src/caseware_poc/integrations/postgres_pgvector.py`, `sql/opensearch/*`, `sql/postgres/*` | The runnable demo uses a local vector index to avoid external dependencies |
+| Agent orchestration | Bedrock + LangGraph + LLM proxy | `src/caseware_poc/agents/langgraph_workflow.py`, `src/caseware_poc/integrations/bedrock_runtime.py`, `infra/k8s/llm-proxy-deployment.yaml` | The local API exposes the same routing and guardrail contracts without invoking live models |
+| Observability | CloudWatch + Langfuse + New Relic | `src/caseware_poc/observability/*`, `infra/cdk/stacks/observability_stack.py`, `infra/k8s/langfuse/values.yaml`, `infra/k8s/newrelic/values.yaml` | Local JSON logging remains in place for the demo |
+| Guardrails and context management | Repo-native skills, rules, contracts, and templates | `guardrails/*`, `src/caseware_poc/guardrails/registry.py`, `src/caseware_poc/agents/prompt_loader.py` | The same policy files are used across serving and agent layers |
 
 ## Glue vs EMR Spark
 
@@ -57,7 +52,7 @@ Prefer Trino when:
 - AI tools need predictable query behavior against gold data products
 - the team expects broader federation and interactive SQL workloads
 
-This repo includes both in the reference layer, but the agent-facing exact-query path is centered on Trino.
+This repo includes both, but the agent-facing exact-query path is centered on Trino.
 
 ## OpenSearch vs pgvector
 
@@ -113,7 +108,7 @@ The POC uses a shared index to keep the implementation compact, but it still enf
 
 ## Bedrock / Agent Runtime Evolution
 
-The current local serving layer is rules-based. The reference path shows how it evolves to:
+The serving layer in the POC is intentionally lightweight. The architecture still shows:
 
 - LangGraph orchestration for multi-step flows
 - Bedrock for grounded answer synthesis

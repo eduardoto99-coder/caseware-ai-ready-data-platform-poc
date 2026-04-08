@@ -11,47 +11,43 @@ The design challenge is not just ingestion or retrieval in isolation. It is the 
 
 ## 2. Scope and Assumptions
 
-This POC optimizes for clarity and runnable depth rather than infrastructure breadth.
+This POC optimizes for production-shaped clarity rather than deployability.
 
 - The structured source is simulated as CDC-style JSONL batches containing inserts, updates, deletes, duplicates, and late/out-of-order events.
 - The document source is simulated as policy, workpaper, note, and issue-summary records.
-- Local Parquet files stand in for a lakehouse landing zone.
-- DuckDB stands in for the analytical serving engine.
-- The vector path uses a deterministic local embedding adapter to keep the repository runnable without external credentials.
-- The serving layer is a thin rules-based interface rather than a full LLM agent runtime. The key design goal is the routing discipline, not generative polish.
-- The repository also includes a production-shaped reference layer with CDK, Spark, Kafka, Iceberg, Trino, Aurora PostgreSQL/pgvector, OpenSearch, Bedrock, LangGraph, Langfuse, EKS, CloudWatch, and New Relic code so the stack aligns more closely with the target role.
-- Repo-native LLM safety policy lives in `guardrails/` and is consumed by both the local runtime and the production-shaped agent path.
+- The repository uses production-style boundaries and service names even when some components are simulated or locally substituted for demo purposes.
+- Parquet and DuckDB exist to keep the POC inspectable and runnable without provisioning cloud resources, but the architecture is still expressed as S3, Iceberg, Spark, Trino, OpenSearch, pgvector, Bedrock, and LangGraph.
+- Repo-native LLM safety policy lives in `guardrails/` and is consumed by both the runtime services and the agent orchestration layer.
 
 ## 3. End-to-End Data Flow
 
 ### Structured path
 
-1. Sample CDC batches are generated with `tenant_id`, `entity_id`, `updated_at`, `emitted_at`, and `source_sequence`.
-2. Bronze ingestion writes immutable batch Parquet files.
-3. Bronze preserves both the inferred payload object and a raw `payload_json` string for replayability and schema resilience.
-4. Silver deduplicates on `event_id`, reconciles out-of-order changes by `(updated_at, source_sequence, emitted_at)`, and produces latest-entity snapshots.
-5. Gold creates curated business tables that are ready for exact SQL and agent/tool usage.
+1. The challenge models structured ingestion as CDC flowing from OLTP systems into Kafka/MSK topics.
+2. Bronze lands raw events into Iceberg-shaped bronze tables on S3.
+3. Bronze preserves the raw payload and `payload_json` for replayability and schema resilience.
+4. Spark-shaped transforms deduplicate on `event_id`, reconcile out-of-order changes by `(updated_at, source_sequence, emitted_at)`, and produce latest-entity silver snapshots.
+5. Gold creates curated business tables ready for exact SQL and agent/tool usage through Trino.
 
 ### Unstructured path
 
-1. Documents are landed into a bronze document table.
+1. Documents are landed with metadata required for tenant-aware retrieval.
 2. The chunker normalizes OCR text, detects table-like sections, and uses overlap only for narrative sections.
-3. Chunks are embedded and stored in a shared vector index with chunk metadata.
+3. Chunks are embedded and modeled for OpenSearch Serverless or Aurora PostgreSQL with pgvector.
 4. Retrieval enforces tenant and retention filters before similarity scoring.
-5. Answers are assembled from retrieved chunks with citations and logs.
+5. Answers are assembled from retrieved chunks with citations, warnings, and observability events.
 
 ### Serving path
 
 1. The router inspects the question.
-2. Exact-value questions route to the SQL skill.
-3. Narrative questions route to the RAG skill.
+2. Exact-value questions route to the SQL skill backed by gold products.
+3. Narrative questions route to the RAG skill backed by tenant-scoped retrieval.
 4. Mixed questions trigger a precision guardrail flow: SQL answers exact values and RAG supplies contextual evidence only.
+5. LangGraph and Bedrock are represented for the multi-step agent layer, while the local API keeps the same contracts visible for the demo.
 
-### Production reference path
+The repository expresses that architecture through:
 
-In addition to the runnable local flow, the repository now includes:
-
-1. CDK infrastructure code for S3, Glue Catalog, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL/pgvector, OpenSearch Serverless, EKS, CloudWatch, Bedrock roles, Langfuse secrets, and New Relic secrets
+1. CDK infrastructure code for S3, Glue Catalog, Lake Formation, EMR Serverless, MSK, Aurora PostgreSQL/pgvector, OpenSearch Serverless, EKS, CloudWatch, Bedrock resources, Langfuse secrets, and New Relic secrets
 2. Spark jobs for Kafka-to-Iceberg bronze ingestion and bronze-to-silver-to-gold transforms
 3. Trino SQL DDL and serving views
 4. Integration code for Trino, Postgres/pgvector, OpenSearch, Bedrock, Kafka, and Glue
@@ -144,12 +140,8 @@ Microbatching is the right choice for this exercise. It still demonstrates incre
 
 ### Shared vector index vs per-tenant index
 
-The POC uses a shared index with mandatory metadata filtering because it is easier to operate locally and still demonstrates tenant-safe retrieval. At larger scale or under stricter isolation requirements, per-tenant indexes may become preferable.
+The POC uses a shared index with mandatory metadata filtering because it keeps the challenge compact while still demonstrating tenant-safe retrieval. At larger scale or under stricter isolation requirements, per-tenant indexes may become preferable.
 
-### Local deterministic embeddings vs managed embedding service
+### Demo-friendly adapters vs managed services
 
-The local embedding adapter keeps the repo reproducible and testable. In production, this would likely be replaced with Bedrock Titan embeddings, OpenAI embeddings, or another managed provider with stronger semantic performance and centralized governance.
-
-### DuckDB vs distributed engines
-
-DuckDB is intentionally small and transparent. The production mapping moves the same data contracts to S3, Iceberg, Glue, Lake Formation, and EMR/Serverless compute where scale or team workflow requires it.
+Some repository components use lightweight adapters so the code can be inspected and exercised without real cloud provisioning. That does not change the architecture. It only changes how the POC is demonstrated.

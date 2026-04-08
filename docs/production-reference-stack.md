@@ -1,19 +1,20 @@
 # Production Reference Stack
 
-This repository now has a second track beyond the local runnable POC: a production-shaped reference layer that uses the technologies emphasized by the target role.
+This repository is a production-shaped POC that uses the technologies emphasized by the target role.
 
-The intent is not that every file here is runnable in the current local environment. The intent is that you can show real-looking, system-shaped code for the stack a production team would actually discuss.
+The intent is not that every file here is fully deployable in the current environment. The intent is that you can show real-looking, system-shaped code for the stack a production team would actually discuss.
 
 ## Design Principle
 
-The repo is intentionally split into:
+The repo presents one architecture for the challenge:
 
-- `local runnable path`
-- `production reference path`
+- lakehouse ingestion and medallion transforms
+- exact SQL serving for structured finance data
+- tenant-safe retrieval for unstructured documents
+- guardrail-driven routing and response contracts
+- observability and infrastructure artifacts around that platform
 
-The local path proves the architecture works end to end.
-
-The production reference path proves you understand the real stack and how the system would evolve using the technologies named in the role.
+Some files are demo-friendly stand-ins and some are cloud-shaped artifacts, but they belong to the same design.
 
 ## Production Reference Directories
 
@@ -42,7 +43,7 @@ Reference Kubernetes and Helm-style values for EKS-hosted platform services.
 
 ### `jobs/spark/`
 
-Spark/Iceberg jobs for the production reference path.
+Spark/Iceberg jobs for the challenge architecture.
 
 - `cdc_to_bronze.py`
   Kafka CDC -> Iceberg bronze
@@ -58,7 +59,7 @@ These files show Spark, Iceberg, Glue Catalog, and S3-oriented job logic directl
 This directory is intentionally small.
 
 - `reference_architecture.py`
-  narrative model of the dual-track design, used to explain the relationship between the runnable local path and the production reference path
+  narrative model of the production-shaped POC layers used in the challenge
 
 ### `sql/`
 
@@ -99,7 +100,7 @@ Production-shaped agent orchestration and LLM guardrails.
 
 ### `src/caseware_poc/observability/`
 
-Observability integrations for the production path.
+Observability integrations for the challenge architecture.
 
 - `langfuse_tracer.py`
 - `cloudwatch_metrics.py`
@@ -159,8 +160,8 @@ Lake Formation and AWS Knowledge Bases are represented directly in the CDK layer
 
 Tell the team:
 
-1. the local path is the executable proof
-2. the production reference path is the stack-aligned proof
-3. the two paths intentionally share the same architecture boundaries even though they use different tooling
+1. this is one production-shaped POC architecture
+2. the repository includes the layers, tools, and contracts the challenge asked for
+3. some components are simulated so the system can be walked through without provisioning the whole cloud estate
 
-That framing makes the repo look disciplined instead of inconsistent.
+That framing keeps the repo focused on architecture depth instead of deployment polish.

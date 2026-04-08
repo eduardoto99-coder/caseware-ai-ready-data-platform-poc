@@ -2,10 +2,7 @@
 
 The repository uses `guardrails/` as the single policy system for hallucination prevention, tenant isolation, tool discipline, and context management.
 
-That policy system is consumed in two places:
-
-1. the runnable local POC
-2. the production-shaped LangGraph/Bedrock reference path
+That policy system is consumed by both the serving layer and the LangGraph/Bedrock agent layer.
 
 ## Policy Files
 
@@ -60,9 +57,9 @@ These files capture hard constraints around:
 [response_contract.md](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/guardrails/templates/response_contract.md)  
 [trino_overdue_query.sql](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/guardrails/templates/trino_overdue_query.sql)
 
-These are reusable repo-native assets for the production-shaped agent path.
+These are reusable repo-native assets for the agent path.
 
-## Local Runtime Use
+## Serving Runtime Use
 
 [registry.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/guardrails/registry.py) loads the guardrail bundle and exposes:
 
@@ -83,7 +80,7 @@ These are reusable repo-native assets for the production-shaped agent path.
 
 [app.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/app.py) exposes the full bundle at `GET /guardrails`.
 
-## Production-Shaped Agent Use
+## Agent Use
 
 [prompt_loader.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/agents/prompt_loader.py) now reads directly from `guardrails/` instead of a separate prompt directory.
 

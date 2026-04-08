@@ -5,15 +5,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class ReferenceArchitecture:
-    """Narrative model of the dual-track design used in this repository."""
+    """Narrative model of the production-shaped POC architecture used in this repository."""
 
-    runnable_local_path: tuple[str, ...] = (
-        "sample data generator",
-        "DuckDB bronze/silver/gold lakehouse",
-        "local deterministic embeddings",
-        "FastAPI serving layer",
-    )
-    production_reference_path: tuple[str, ...] = (
+    platform_layers: tuple[str, ...] = (
         "S3 + Glue Catalog + Iceberg",
         "EMR Serverless Spark transforms",
         "Kafka/MSK CDC ingestion",
@@ -24,9 +18,15 @@ class ReferenceArchitecture:
         "Langfuse + CloudWatch + New Relic observability",
         "EKS-hosted serving and analytics components",
     )
+    demo_shortcuts: tuple[str, ...] = (
+        "sample data generator for CDC events and documents",
+        "DuckDB-backed demo harness for exact SQL flows",
+        "deterministic local embeddings for credential-free retrieval demos",
+        "FastAPI query surface for walkthroughs and tests",
+    )
 
     def as_dict(self) -> dict[str, tuple[str, ...]]:
         return {
-            "runnable_local_path": self.runnable_local_path,
-            "production_reference_path": self.production_reference_path,
+            "platform_layers": self.platform_layers,
+            "demo_shortcuts": self.demo_shortcuts,
         }

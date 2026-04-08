@@ -2,12 +2,7 @@
 
 This file maps the original challenge requirements to concrete implementation artifacts in the repository.
 
-The implementation is intentionally split into:
-
-- a runnable local path
-- a production-shaped reference path
-
-Both paths cover the same architecture boundary, but they use different tools.
+The repository is organized as one production-shaped POC architecture. Some pieces are simulated for demo purposes, but the layers and tool boundaries are the same ones you would discuss in a production design review.
 
 ## A. Incremental Ingestion
 
@@ -24,7 +19,7 @@ Coverage:
 - Inserts, updates, deletes, duplicates, and late-arriving events
 - Incremental document ingestion for new/changed records
 - No full reload logic in the serving path
-- Production-shaped Kafka/MSK -> Spark -> Iceberg bronze ingestion path
+- Kafka/MSK -> Spark -> Iceberg bronze ingestion path is represented directly in code
 
 ## B. Medallion Architecture
 
@@ -40,7 +35,7 @@ Coverage:
 - Bronze: raw landing Parquet
 - Silver: dedupe, latest-wins reconciliation, normalized entity snapshots
 - Gold: curated serving tables for invoices, engagements, and control exceptions
-- Production-shaped Iceberg DDL and Spark jobs for the same medallion flow
+- Iceberg DDL and Spark jobs for the same medallion flow
 
 ## C. AI / RAG Layer
 
@@ -61,7 +56,7 @@ Coverage:
 - Vector generation and persisted shared index
 - Metadata filtering for `tenant_id`, `doc_type`, and `retention_state`
 - Explicit guardrail that keeps exact facts out of the embedding-first path
-- Reference implementations for both OpenSearch and pgvector-backed retrieval
+- Implementations for both OpenSearch and pgvector-backed retrieval
 
 ## D. Agent / Query Routing
 
@@ -82,7 +77,7 @@ Coverage:
 - Narrative questions route to the RAG skill
 - Mixed questions trigger the precision guardrail skill
 - The API returns both the selected skill and the rules that fired
-- The production reference path shows LangGraph, Bedrock, Trino, and OpenSearch wired to the same repo-native guardrail files
+- LangGraph, Bedrock, Trino, and OpenSearch are wired to the same repo-native guardrail files
 
 ## E. Tenant Isolation
 
@@ -101,7 +96,7 @@ Coverage:
 - Tenant filter on all SQL queries
 - Tenant filter enforced before vector similarity scoring
 - No global retrieve-then-filter anti-pattern
-- Reference tenant-boundary enforcement for future authenticated agent flows
+- Tenant-boundary enforcement is explicit in both serving and agent layers
 
 ## F. Data Quality and Observability
 
@@ -122,7 +117,7 @@ Coverage:
 - Null/completeness checks
 - Gold lineage references
 - Retrieval logging, latency logging, attribution logging
-- Production-shaped CloudWatch alarms and dashboards
+- CloudWatch alarms and dashboards
 - Langfuse and New Relic reference wiring
 
 ## G. Architecture Trade-Offs
@@ -143,9 +138,9 @@ Coverage:
 - Shared vector index vs per-tenant index
 - SQL vs embeddings for structured data
 - Bronze/silver/gold layer responsibilities
-- Local POC to AWS production evolution
+- Demo stand-ins versus managed-service implementations
 
-## H. Role-Aligned Reference Stack
+## H. Role-Aligned Stack
 
 Implemented in:
 

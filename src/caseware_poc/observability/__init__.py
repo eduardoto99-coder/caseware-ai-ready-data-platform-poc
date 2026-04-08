@@ -1,1 +1,1 @@
-"""Observability integrations for the production reference path."""
+"""Observability integrations for the production-shaped challenge architecture."""

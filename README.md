@@ -1,11 +1,8 @@
 # Caseware AI-Ready Data Platform POC
 
-A small-but-deep reference implementation for a multi-tenant accounting and audit data platform. The project now has two layers:
+A production-shaped POC for a multi-tenant accounting and audit data platform. The goal is not to provide a fully deployable cloud environment. The goal is to present one coherent architecture for the challenge, with real-looking code for the layers and tools the role cares about: Spark, Kafka, Trino, Iceberg, S3, Glue Catalog, Lake Formation, EMR, OpenSearch, Aurora PostgreSQL/pgvector, EKS, Bedrock, LangGraph, Langfuse, CloudWatch, New Relic, and AWS CDK.
 
-1. a runnable local POC that demonstrates CDC-style ingestion, bronze/silver/gold lakehouse layers, exact SQL serving, tenant-safe RAG, and observability
-2. a production-shaped reference stack that shows how the same system would be built with Spark, Kafka, Trino, Iceberg, S3, Glue Catalog, Lake Formation, EMR, OpenSearch, Aurora PostgreSQL/pgvector, EKS, Bedrock, LangGraph, Langfuse, CloudWatch, New Relic, and AWS CDK
-
-This repository is intentionally a POC, not a full platform. The goal is to show hands-on depth, clear trade-offs, and disciplined implementation choices in a format suitable for a technical interview walkthrough.
+Where the repository uses lightweight stand-ins such as DuckDB or deterministic local embeddings, those are implementation shortcuts inside the same architecture, not a second architecture.
 
 ## What It Demonstrates
 
@@ -15,26 +12,24 @@ This repository is intentionally a POC, not a full platform. The goal is to show
 - Chunking and vector indexing for policies, workpapers, notes, and issue summaries
 - Tenant isolation across storage, transforms, retrieval, and serving
 - Agent-facing routing that keeps exact numbers in SQL and narrative context in RAG
-- Production-shaped reference code for Spark, Kafka, Trino, Iceberg, S3, Glue Catalog, Lake Formation, EMR, OpenSearch, Aurora PostgreSQL/pgvector, EKS, Bedrock, LangGraph, Langfuse, CloudWatch, and New Relic
 - Repo-native guardrail skills, rules, contracts, and templates for LLM safety and context management
-- Repo-native guardrail files, templates, and enforcement code for LLM safety and context management
 - Data quality checks, lineage references, and structured JSON observability
-- A local implementation with a clear AWS production mapping
+- Production-shaped code and infrastructure artifacts for the stack named in the challenge
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A["Structured OLTP CDC events"] --> B["Bronze: raw Parquet landing"]
-    D["Audit/policy documents"] --> E["Bronze: document landing"]
-    B --> C["Silver: dedupe, late-event reconcile, normalize, quality"]
-    C --> F["Gold: invoice summary, engagement status, control exceptions"]
-    E --> G["Chunking + embeddings + tenant-aware shared vector index"]
+    A["OLTP CDC events via Kafka/MSK"] --> B["Bronze Iceberg tables on S3"]
+    D["Audit and policy documents"] --> E["Document landing plus metadata"]
+    B --> C["Spark bronze to silver normalization"]
+    C --> F["Gold Iceberg data products served through Trino"]
+    E --> G["Chunking plus embeddings plus OpenSearch or pgvector retrieval"]
     F --> H["Exact Accounting SQL skill"]
     G --> I["Tenant-Safe Policy RAG skill"]
-    H --> J["Routing layer with skills and rules"]
+    H --> J["LangGraph routing plus guardrails"]
     I --> J
-    J --> K["Grounded query response with lineage, citations, and warnings"]
+    J --> K["Grounded response with citations, warnings, and observability"]
 ```
 
 ## Repo Layout
@@ -94,7 +89,7 @@ pytest
 python scripts/serve_api.py
 ```
 
-Optional reference-only dependencies for the production-shaped stack:
+Optional dependencies for the production-shaped stack artifacts:
 
 ```bash
 pip install -e '.[reference]'
@@ -121,9 +116,9 @@ Example query payload:
 - Structured accounting data stays in SQL-backed gold tables. It is never treated as an embedding-first problem.
 - Documents are chunked and indexed for semantic retrieval, but tenant filters are applied before scoring.
 - Bronze preserves raw payloads plus `payload_json` so silver can evolve independently from JSON schema inference quirks.
-- The vector path uses a deterministic local embedding adapter so the repo is runnable without external model or API dependencies.
+- The vector path can be demonstrated locally with deterministic embeddings, but the architecture and interfaces are shaped for OpenSearch or pgvector.
 - Mixed questions trigger a guardrail flow: SQL owns exact values, documents only provide context.
-- The repo intentionally separates `runnable local path` from `production-shaped reference path` so you can both run the demo and show hands-on familiarity with the target stack from the role.
+- The repository uses production-shaped service boundaries even when some components are demo-friendly stand-ins.
 
 ## Demo Questions
 

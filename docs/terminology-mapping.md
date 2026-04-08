@@ -4,8 +4,8 @@ This document answers a specific interview question: which platform, data, AI, g
 
 Status meanings:
 
-- `Used directly (local path)`: implemented in the runnable local code path
-- `Used directly (reference path)`: implemented in the production-shaped reference code or infrastructure files
+- `Used directly`: implemented in the repository runtime or serving flow
+- `Used directly (challenge artifact)`: implemented in challenge-facing infrastructure, integration, SQL, Spark, or agent files
 - `Represented conceptually`: not deployed as the named product/service, but the POC models the idea or documents how it maps to production
 - `Not used intentionally`: left out to keep the reference implementation small, runnable, and focused on the core problem
 
@@ -34,7 +34,7 @@ Status meanings:
 | CDC / change tracking | Used directly | The structured path models inserts, updates, deletes, duplicates, and late/out-of-order changes. |
 | Historical reprocessing | Used directly | Bronze is replayable and the entire pipeline can be rebuilt from raw data by rerunning bootstrap/demo flows. |
 | Indexing | Used directly | The vector path builds a retrieval index, and the docs explain indexing as part of the AI path. |
-| Partitioning | Used directly (reference path) | Iceberg and Spark reference files show partitioned bronze/gold tables in `sql/iceberg/medallion_tables.sql` and `jobs/spark/silver_to_gold.py`. |
+| Partitioning | Used directly (challenge artifact) | Iceberg and Spark files show partitioned bronze/gold tables in `sql/iceberg/medallion_tables.sql` and `jobs/spark/silver_to_gold.py`. |
 
 ## AI and LLM Terms
 
@@ -43,8 +43,8 @@ Status meanings:
 | Embeddings | Used directly | `src/caseware_poc/rag/embedding.py` creates deterministic local embeddings for the vector path. |
 | Vector retrieval | Used directly | `src/caseware_poc/rag/index.py` performs tenant-scoped vector retrieval over chunk embeddings. |
 | RAG | Used directly | The document path is a tenant-safe RAG implementation with citations and retrieval filters. |
-| Agentic systems | Used directly (reference path) | `src/caseware_poc/agents/langgraph_workflow.py` models a multi-step agent workflow with route selection, tool use, synthesis, and guardrail enforcement. |
-| LLM tooling / AI platform integration | Used directly (reference path) | Bedrock, LangGraph, Langfuse, repo-native guardrails, and the LLM proxy deployment are all represented in the reference path. |
+| Agentic systems | Used directly (challenge artifact) | `src/caseware_poc/agents/langgraph_workflow.py` models a multi-step agent workflow with route selection, tool use, synthesis, and guardrail enforcement. |
+| LLM tooling / AI platform integration | Used directly (challenge artifact) | Bedrock, LangGraph, Langfuse, repo-native guardrails, and the LLM proxy deployment are all represented in the repository. |
 
 ## Governance and Security Terms
 
@@ -68,32 +68,32 @@ Status meanings:
 | Traceability | Used directly | Outputs can be traced through source event IDs, batch IDs, and logs. |
 | Data dictionary controls | Represented conceptually | The POC documents stable field meanings, but it does not implement a dedicated data dictionary service. |
 | Freshness monitoring | Used directly | The quality report computes freshness metrics from `updated_at` and `emitted_at`. |
-| Alerting | Used directly (reference path) | `infra/cdk/stacks/observability_stack.py` creates a CloudWatch alarm for freshness lag. |
+| Alerting | Used directly (challenge artifact) | `infra/cdk/stacks/observability_stack.py` creates a CloudWatch alarm for freshness lag. |
 | Observability | Used directly | Structured JSON logs are produced for ingestion, quality checks, SQL, retrieval, and index builds. |
 
 ## AWS and Platform Tools
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| S3 | Used directly (reference path) | CDK, Spark, and Iceberg reference code use S3-backed bronze/silver/gold locations. |
+| S3 | Used directly (challenge artifact) | CDK, Spark, and Iceberg code use S3-backed bronze/silver/gold locations. |
 | S3 Express | Not used intentionally | Lower-latency S3 classes are production optimization details, not necessary for a local interview POC. |
-| Athena | Used directly (reference path) | `infra/cdk/stacks/data_platform_stack.py` provisions an Athena workgroup for governed analytics. |
-| Glue Catalog | Used directly (reference path) | CDK and integration code define Glue Catalog databases and Iceberg table registration. |
-| Lake Formation | Used directly (reference path) | CDK code registers S3 lakehouse resources for governed access. |
-| OpenSearch Serverless | Used directly (reference path) | CDK, index JSON, and integration code define a tenant-aware OpenSearch vector store. |
+| Athena | Used directly (challenge artifact) | `infra/cdk/stacks/data_platform_stack.py` provisions an Athena workgroup for governed analytics. |
+| Glue Catalog | Used directly (challenge artifact) | CDK and integration code define Glue Catalog databases and Iceberg table registration. |
+| Lake Formation | Used directly (challenge artifact) | CDK code registers S3 lakehouse resources for governed access. |
+| OpenSearch Serverless | Used directly (challenge artifact) | CDK, index JSON, and integration code define a tenant-aware OpenSearch vector store. |
 | S3 Vector Storage | Represented conceptually | The repo persists vectors locally and maps this to AWS vector storage options in production. |
-| Iceberg | Used directly (reference path) | Spark jobs and SQL DDL define Iceberg-backed bronze, silver, and gold tables. |
+| Iceberg | Used directly (challenge artifact) | Spark jobs and SQL DDL define Iceberg-backed bronze, silver, and gold tables. |
 | Lambda | Represented conceptually | The repo uses scripts and a local API; Lambda is part of the production orchestration mapping. |
 | Step Functions | Represented conceptually | Workflow sequencing is local, with Step Functions described for production orchestration. |
-| EKS | Used directly (reference path) | CDK and Kubernetes values files model EKS-hosted Trino and observability components. |
-| EMR / EMR Serverless | Used directly (reference path) | CDK creates EMR Serverless application scaffolding and Spark jobs target that runtime. |
+| EKS | Used directly (challenge artifact) | CDK and Kubernetes values files model EKS-hosted Trino and observability components. |
+| EMR / EMR Serverless | Used directly (challenge artifact) | CDK creates EMR Serverless application scaffolding and Spark jobs target that runtime. |
 
 ## Processing Frameworks
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| Spark | Used directly (reference path) | `jobs/spark/` contains PySpark jobs for Kafka-to-Iceberg bronze and medallion transformations. |
-| Trino | Used directly (reference path) | Trino client code, Helm values, and serving SQL are part of the reference stack. |
+| Spark | Used directly (challenge artifact) | `jobs/spark/` contains PySpark jobs for Kafka-to-Iceberg bronze and medallion transformations. |
+| Trino | Used directly (challenge artifact) | Trino client code and serving SQL are part of the challenge stack. |
 | MapReduce | Not used intentionally | It is historically relevant but not necessary to demonstrate the target architecture for this challenge. |
 
 ## Databases and Messaging Tools
@@ -105,34 +105,34 @@ Status meanings:
 | MS SQL Server | Represented conceptually | The source system could be MS SQL Server in a real environment, but the POC simulates the source instead of connecting to one. |
 | DynamoDB | Not used intentionally | No key-value operational store was needed for the core challenge. |
 | Redis / Valkey | Not used intentionally | Caching and ephemeral state were not necessary for the local interview build. |
-| SNS | Not used intentionally | There is no asynchronous production event fan-out requirement in the local POC. |
+| SNS | Not used intentionally | There is no asynchronous production event fan-out requirement in this challenge POC. |
 | SQS | Not used intentionally | Queueing is not necessary for the single-process reference implementation. |
-| Kafka / Pub/Sub | Used directly (reference path) | MSK/CDK scaffolding, Kafka consumer code, and Spark Structured Streaming jobs are included. |
-| Aurora PostgreSQL | Used directly (reference path) | CDK and connector code model Aurora PostgreSQL as a production relational/vector backing store. |
-| pgvector | Used directly (reference path) | PostgreSQL schema, connector code, and vector-search patterns are included. |
+| Kafka / Pub/Sub | Used directly (challenge artifact) | MSK/CDK scaffolding, Kafka consumer code, and Spark Structured Streaming jobs are included. |
+| Aurora PostgreSQL | Used directly (challenge artifact) | CDK and connector code model Aurora PostgreSQL as a relational/vector backing store. |
+| pgvector | Used directly (challenge artifact) | PostgreSQL schema, connector code, and vector-search patterns are included. |
 
 ## AI Platform and Agent Tools
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
-| AWS Bedrock | Used directly (reference path) | Bedrock runtime wrapper and CDK Bedrock runtime role are included in code. |
+| AWS Bedrock | Used directly (challenge artifact) | Bedrock runtime wrapper and CDK Bedrock resources are included in code. |
 | AWS AgentCore | Represented conceptually | The repo models agent runtime concepts directly in LangGraph and guardrail code instead of adding an AgentCore-specific implementation. |
-| LangGraph | Used directly (reference path) | The repo now includes a LangGraph workflow that ties guardrail skills, Trino, OpenSearch, Bedrock, and Langfuse together. |
-| Langfuse | Used directly (reference path) | A Langfuse tracer wrapper and Kubernetes values are included. |
+| LangGraph | Used directly (challenge artifact) | The repo now includes a LangGraph workflow that ties guardrail skills, Trino, OpenSearch, Bedrock, and Langfuse together. |
+| Langfuse | Used directly (challenge artifact) | A Langfuse tracer wrapper and Kubernetes values are included. |
 | MCP | Represented conceptually | The skill-and-tool idea aligns with MCP-style context and tool connectivity, but the POC does not implement an MCP server. |
 | LaunchDarkly | Not used intentionally | Feature flagging is useful for controlled rollout, but not required to prove the platform architecture. |
-| AWS Knowledge Bases | Used directly (reference path) | `infra/cdk/stacks/ai_platform_stack.py` defines a Bedrock Knowledge Base and S3 data source. |
+| AWS Knowledge Bases | Used directly (challenge artifact) | `infra/cdk/stacks/ai_platform_stack.py` defines a Bedrock Knowledge Base and S3 data source. |
 | AWS Textract | Represented conceptually | The hard OCR-like document simulates the kind of document that Textract would help extract in production. |
-| LLM proxy layer | Used directly (reference path) | The LangGraph workflow plus guardrail assets model a central policy and tool-routing layer. |
+| LLM proxy layer | Used directly (challenge artifact) | The LangGraph workflow plus guardrail assets model a central policy and tool-routing layer. |
 
 ## DevOps and Operations
 
 | Term | Status | How it appears in this POC |
 | --- | --- | --- |
 | CI/CD pipelines | Represented conceptually | The repo has tests and infra code, but no hosted CI/CD workflow file was added yet. |
-| Infrastructure as code | Used directly (reference path) | The CDK application and constructs under `infra/cdk/` are infrastructure-as-code artifacts. |
-| CloudWatch | Used directly (reference path) | CDK defines CloudWatch log groups and the repo includes EMF metric rendering. |
-| New Relic | Used directly (reference path) | EKS values and config helpers show how New Relic would be wired into the stack. |
+| Infrastructure as code | Used directly (challenge artifact) | The CDK application and constructs under `infra/cdk/` are infrastructure-as-code artifacts. |
+| CloudWatch | Used directly (challenge artifact) | CDK defines CloudWatch log groups and the repo includes EMF metric rendering. |
+| New Relic | Used directly (challenge artifact) | EKS values and config helpers show how New Relic would be wired into the stack. |
 | OpenTelemetry | Represented conceptually | The observability design is compatible with OpenTelemetry-style traces and metrics, but the POC uses a simpler local logger. |
 
 ## Why Some Terms Were Not Implemented

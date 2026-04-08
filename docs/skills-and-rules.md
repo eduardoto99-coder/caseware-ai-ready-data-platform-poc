@@ -2,12 +2,7 @@
 
 This repository now has one source of truth for skills, rules, and LLM guardrails: `guardrails/`.
 
-Two different code paths consume those same assets:
-
-1. the runnable local path via `src/caseware_poc/guardrails/registry.py`
-2. the production-shaped agent path via `src/caseware_poc/agents/prompt_loader.py` and `src/caseware_poc/agents/langgraph_workflow.py`
-
-That is the important design choice. The repo no longer depends on a second prompt tree that can drift away from the real runtime behavior.
+Those assets are consumed by the serving layer and the agent layer through the same policy files. That is the important design choice. The repo no longer depends on a second prompt tree that can drift away from the real runtime behavior.
 
 ## Source of Truth
 
@@ -50,7 +45,7 @@ These skill files use Markdown plus YAML front matter so they are human-readable
 - `response_contract.md`
 - `trino_overdue_query.sql`
 
-These are reusable prompt/query assets for the production-shaped agent workflow.
+These are reusable prompt/query assets for the agent workflow.
 
 ## Skill Contracts
 
@@ -73,9 +68,9 @@ These are reusable prompt/query assets for the production-shaped agent workflow.
 - Required outputs: warning, SQL-backed exact answer, document citations for context only
 - Forbidden behavior: never let RAG own exact balances and never suppress the warning
 
-## Local Runtime Wiring
+## Runtime Wiring
 
-The runnable local path reads the guardrail files through [registry.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/guardrails/registry.py).
+The serving stack reads the guardrail files through [registry.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/guardrails/registry.py).
 
 - [router.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/serving/router.py)
   uses `routing.yaml` to choose `sql`, `rag`, or `mixed_guardrail`
@@ -86,9 +81,9 @@ The runnable local path reads the guardrail files through [registry.py](/Users/e
 - [app.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/app.py)
   exposes the loaded policy bundle via `GET /guardrails`
 
-## Production-Shaped Agent Wiring
+## Agent Wiring
 
-The production reference path uses the same repo-native assets instead of a separate prompt tree.
+The agent layer uses the same repo-native assets instead of a separate prompt tree.
 
 - [prompt_loader.py](/Users/eduardoblandon/Desktop/caseware-ai-ready-platform-poc/src/caseware_poc/agents/prompt_loader.py)
   loads `guardrails/skills/`, `guardrails/rules/`, `guardrails/context/`, and `guardrails/templates/`
@@ -102,6 +97,6 @@ The production reference path uses the same repo-native assets instead of a sepa
 This design demonstrates four things clearly:
 
 - the repo has explicit, versioned safety policy instead of hidden prompt strings
-- both the local POC and the production reference path read from the same policy files
+- the serving layer and the agent layer read from the same policy files
 - structured finance questions are guarded away from hallucinated document answers
 - context management and tenant isolation are visible in code, docs, and API output

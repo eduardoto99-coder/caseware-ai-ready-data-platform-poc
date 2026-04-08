@@ -40,6 +40,7 @@ Talking points:
 - Narrative sections and table fragments are chunked differently.
 - The vector path is tenant-aware and retention-aware.
 - I kept embeddings local and deterministic so the repo is runnable without credentials, but the abstraction is intentionally swappable.
+- The same repository also shows how this layer maps to OpenSearch and pgvector, so the challenge still demonstrates the right target tools.
 
 ## 4. Show the Decision Boundary
 
@@ -82,10 +83,10 @@ These are the best trade-offs to discuss:
 - Why structured financial data should not be embedding-first
 - Why a shared vector index is acceptable only if tenant filters are enforced before scoring
 - Why bronze needs to remain replayable even in a small POC
-- Why this local stack maps cleanly to S3, Glue, Lake Formation, EMR, OpenSearch, and CloudWatch
+- Why the POC uses production-shaped boundaries even where some components are simulated
 
 ## 7. Strong Ending
 
 Close with something like:
 
-“I intentionally kept the infrastructure local and lightweight, but I treated the system boundaries as production concerns. The interesting part of the challenge is not whether I can call an embedding API; it’s whether I can define the right contracts between ingestion, governance, retrieval, and serving for an AI-ready data platform.”
+“I intentionally treated this as one production-shaped POC architecture. Some components are simulated so the repository is practical to walk through, but the contracts, guardrails, and tool boundaries are the same ones I would discuss in a real platform design review.”
